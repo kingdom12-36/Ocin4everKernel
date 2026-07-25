@@ -1,7 +1,7 @@
 name: Kernel Build Workflow
 
 on:
-  push: 
+  push:
   workflow_dispatch:
     inputs:
       model:
@@ -36,6 +36,12 @@ jobs:
     if: ${{ github.event.inputs.model == 'd1' || needs.setup.outputs.should_build_all == 'true' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Update submodules
+        run: |
+          git submodule update --init --recursive
+          git submodule update 
       - name: Build for d1
         run: ./workflows.sh -m d1 -k N -r N
       - name: Upload artifact
@@ -50,6 +56,12 @@ jobs:
     if: ${{ github.event.inputs.model == 'd1xks' || needs.setup.outputs.should_build_all == 'true' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Update submodules
+        run: |
+          git submodule update --init 
+          git submodule update 
       - name: Build for d1xks
         run: ./workflows.sh -m d1xks -k N -r N
       - name: Upload artifact
@@ -64,6 +76,10 @@ jobs:
     if: ${{ github.event.inputs.model == 'd2s' || needs.setup.outputs.should_build_all == 'true' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Update submodules
+        run: |
       - name: Build for d2s
         run: ./workflows.sh -m d2s -k N -r N
       - name: Upload artifact
@@ -78,6 +94,12 @@ jobs:
     if: ${{ github.event.inputs.model == 'd2x' || needs.setup.outputs.should_build_all == 'true' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Update submodules
+        run: |
+          git submodule update --init --recursive
+          git submodule update
       - name: Build for d2x
         run: ./workflows.sh -m d2x -k N -r N
       - name: Upload artifact
@@ -92,6 +114,12 @@ jobs:
     if: ${{ github.event.inputs.model == 'd2xks' || needs.setup.outputs.should_build_all == 'true' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Update submodules
+        run: |
+          git submodule update --init --recursive
+          git submodule update
       - name: Build for d2xks
         run: ./workflows.sh -m d2xks -k N -r N
       - name: Upload artifact
