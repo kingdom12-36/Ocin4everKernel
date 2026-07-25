@@ -65,7 +65,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build for d2s
-        run: ./workflows.sh -m d2s -k N -r N
+        run: ./workflows.sh -m d2s -k Y -r N
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
