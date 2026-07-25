@@ -80,7 +80,7 @@ jobs:
       - name: Update submodules
         run: |
       - name: Build for d2s
-        run: ./workflows.sh -m d2s -k Y -r N
+        run: ./workflows.sh -m d2s -k N -r N
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
