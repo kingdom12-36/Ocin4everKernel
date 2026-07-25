@@ -47,7 +47,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ExtremeKRNL-Nexus-d1
+          name: d1
           path: build/out/d1/zip
 
   build_d1xks:
