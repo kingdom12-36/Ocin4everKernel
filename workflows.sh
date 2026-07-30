@@ -135,7 +135,9 @@ rm -rf build/out/$MODEL
 mkdir -p build/out/$MODEL/zip/files
 mkdir -p build/out/$MODEL/zip/META-INF/com/google/android
 
+# Build kernel image
 echo "-----------------------------------------------"
+echo "Defconfig: "$KERNEL_DEFCONFIG""
 
 if [ -z "$KSU" ]; then
     echo "KSU: No"
@@ -143,14 +145,49 @@ else
     echo "KSU: Yes"
 fi
 
-# Compile kernel
-make $MAKE_ARGS $KERNEL_DEFCONFIG $KSU $RECOVERY || abort
-make $MAKE_ARGS -j$CORES || abort
+if [ -z "$RECOVERY" ]; then
+    echo "Recovery: N"
+else
+    echo "Recovery: Y"
+fi
 
-# Copy kernel artifacts
-cp out/arch/arm64/boot/Image.gz-dtb $KERNEL_PATH 2>/dev/null || \
-    cp out/arch/arm64/boot/Image $KERNEL_PATH 2>/dev/null || \
-    cp out/arch/arm64/boot/Image.gz $KERNEL_PATH 2>/dev/null || abort
+echo "-----------------------------------------------"
+echo "Building kernel using "$KERNEL_DEFCONFIG""
+echo "Generating configuration file..."
+echo "-----------------------------------------------"
+make ${MAKE_ARGS} -j$CORES exynos9820_defconfig $MODEL.config $KSU $RECOVERY || abort
+
+echo "Building kernel..."
+echo "-----------------------------------------------"
+make ${MAKE_ARGS} -j$CORES || abort
+
+# Define constant variables
+KERNEL_PATH=build/out/$MODEL/Image
+KERNEL_OFFSET=0x00008000
+RAMDISK_OFFSET=0xF0000000
+SECOND_OFFSET=0xF0000000
+TAGS_OFFSET=0x00000100
+BASE=0x10000000
+CMDLINE='loop.max_part=7'
+HASHTYPE=sha1
+HEADER_VERSION=1
+OS_PATCH_LEVEL=2025-01
+OS_VERSION=14.0.0
+PAGESIZE=2048
+RAMDISK=build/out/$MODEL/ramdisk.cpio.gz
+OUTPUT_FILE=build/out/$MODEL/boot.img
+
+## Build auxiliary boot.img files
+# Copy kernel to build
+cp out/arch/arm64/boot/Image build/out/$MODEL
+
+echo "-----------------------------------------------"
+# Build dtb
+if [[ "$SOC" == "exynos9820" ]]; then
+    echo "Building common exynos9820 Device Tree Blob Image..."
+    echo "-----------------------------------------------"
+    ./toolchain/mkdtimg cfg_create build/out/$MODEL/dtb.img build/dtconfigs/exynos9820.cfg -d out/arch/arm64/boot/dts/exynos
+fi
 
 if [[ "$SOC" == "exynos9825" ]]; then
     echo "Building common exynos9825 Device Tree Blob Image..."
@@ -159,6 +196,7 @@ if [[ "$SOC" == "exynos9825" ]]; then
 fi
 echo "-----------------------------------------------"
 
+# Build dtbo
 echo "Building Device Tree Blob Output Image for "$MODEL"..."
 echo "-----------------------------------------------"
 ./toolchain/mkdtimg cfg_create build/out/$MODEL/dtbo.img build/dtconfigs/$MODEL.cfg -d out/arch/arm64/boot/dts/samsung
@@ -182,21 +220,23 @@ if [ -z "$RECOVERY" ]; then
     --ramdisk $RAMDISK --ramdisk_offset $RAMDISK_OFFSET --second_offset $SECOND_OFFSET \
     --tags_offset $TAGS_OFFSET -o $OUTPUT_FILE || abort
 
-    # Build shadowmask_sus.ko (SUSFS kernel module for ShadowMask)
-    echo "Building shadowmask_sus.ko..."
-    echo "-----------------------------------------------"
-    make -C out \
-        M=$PWD/shadowmask_sus \
-        LLVM=1 LLVM_IAS=1 \
-        ARCH=arm64 \
-        modules 2>&1 | tail -5 || echo "[!] shadowmask_sus.ko build failed — skipping"
-    if [ -f shadowmask_sus/shadowmask_sus.ko ]; then
-        cp shadowmask_sus/shadowmask_sus.ko build/out/$MODEL/zip/files/shadowmask_sus.ko
-        echo "shadowmask_sus.ko added to zip ✅"
-    else
-        echo "[!] shadowmask_sus.ko not found, skipping"
+    # Build external Kernel Modules (.ko)
+    if [ -d "$PWD/shadowmask_sus" ]; then
+        echo "Building shadowmask_sus.ko..."
+        echo "-----------------------------------------------"
+        make -C $PWD/out \
+            M=$PWD/shadowmask_sus \
+            ${MAKE_ARGS} \
+            modules -j$CORES || echo "[!] shadowmask_sus.ko build failed — skipping"
+
+        if [ -f "shadowmask_sus/shadowmask_sus.ko" ]; then
+            cp shadowmask_sus/shadowmask_sus.ko build/out/$MODEL/zip/files/shadowmask_sus.ko
+            echo "shadowmask_sus.ko added to zip ✅"
+        else
+            echo "[!] shadowmask_sus.ko binary missing, skipping inclusion."
+        fi
+        echo "-----------------------------------------------"
     fi
-    echo "-----------------------------------------------"
 
     # Build zip
     echo "Building zip..."
