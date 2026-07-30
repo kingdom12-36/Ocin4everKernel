@@ -69,9 +69,9 @@ if [ ! -f "$CLANG_DIR/bin/clang-18" ]; then
 fi
 
 MAKE_ARGS="
-LLVM=1 \\
-LLVM_IAS=1 \\
-ARCH=arm64 \\
+LLVM=1 \
+LLVM_IAS=1 \
+ARCH=arm64 \
 O=out
 "
 
