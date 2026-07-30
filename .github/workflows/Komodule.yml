@@ -1,4 +1,4 @@
-Name: Build ShadowMask SUS Module
+name: Build ShadowMask SUS Module
 
 on:
   push:
