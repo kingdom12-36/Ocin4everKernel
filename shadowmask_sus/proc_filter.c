@@ -182,7 +182,8 @@ static bool mountinfo_line_is_hidden(const char *line, size_t len)
         "shadowmask",
         NULL,
     };
-    const char **m;
+    /* FIX: Correct pointer qualifier type for const char * const array */
+    const char * const *m;
 
     if (!sm_hide_sus_mnts)
         return false;
