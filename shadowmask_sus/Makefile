@@ -6,8 +6,8 @@
 obj-m += shadowmask_sus.o
 
 shadowmask_sus-objs := \
-    shadowmask_sus.o \
-    syscall_hook.o   \
+    main.o          \
+    syscall_hook.o  \
     proc_filter.o
 
 ccflags-y := \
