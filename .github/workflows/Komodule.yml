@@ -1,4 +1,4 @@
-name: Build ShadowMask SUS Module
+Name: Build ShadowMask SUS Module
 
 on:
   push:
@@ -15,6 +15,24 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ccache
+
+      - name: Setup ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-kernel-module-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-kernel-module-ccache-
+
+      - name: Configure ccache
+        run: |
+          ccache -M 2G
+          ccache -z
+
       - name: Setup Neutron Toolchain
         run: |
           mkdir -p toolchain/neutron_18
@@ -25,25 +43,30 @@ jobs:
       - name: Prepare Kernel Headers (Fast)
         run: |
           export PATH=$PWD/toolchain/neutron_18/bin:$PATH
-          make LLVM=1 LLVM_IAS=1 ARCH=arm64 O=out exynos9820_defconfig
-          make LLVM=1 LLVM_IAS=1 ARCH=arm64 O=out modules_prepare -j$(nproc)
+          make LLVM=1 LLVM_IAS=1 CC="ccache clang" ARCH=arm64 O=out exynos9820_defconfig
+          make LLVM=1 LLVM_IAS=1 CC="ccache clang" ARCH=arm64 O=out modules_prepare -j$(nproc)
 
-      - name: Build shadowmask_sus.ko
+      - name: Build shadowmask_sus Module
         run: |
           export PATH=$PWD/toolchain/neutron_18/bin:$PATH
           make -C $PWD \
             LLVM=1 \
             LLVM_IAS=1 \
+            CC="ccache clang" \
             ARCH=arm64 \
             O=out \
             M=$PWD/shadowmask_sus \
             modules -j$(nproc)
+
+      - name: Show ccache Statistics
+        run: |
+          ccache -s
 
       - name: Verify and Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: shadowmask_sus_module
           path: |
-            shadowmask_sus/shadowmask_sus.ko
-            out/shadowmask_sus/shadowmask_sus.ko
+            shadowmask_sus/*.ko
+            out/shadowmask_sus/*.ko
           if-no-files-found: error
