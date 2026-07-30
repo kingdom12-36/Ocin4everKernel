@@ -29,7 +29,7 @@ MODULE_AUTHOR("ShadowMask Project");
 MODULE_DESCRIPTION("SUSFS userspace-compatible hiding layer (LKM)");
 MODULE_VERSION("2.2.0-lkm");
 
-/* ── Global state (shared with syscall_hook.c and proc_filter.c) ── */
+/* ── Global state (shared internally with syscall_hook.c and proc_filter.c) ── */
 LIST_HEAD(sm_sus_paths);
 LIST_HEAD(sm_sus_kstats);
 LIST_HEAD(sm_sus_maps);
@@ -37,14 +37,6 @@ LIST_HEAD(sm_open_redirects);
 DEFINE_SPINLOCK(sm_sus_lock);
 bool sm_hide_sus_mnts = false;
 bool sm_log_enabled   = false;
-
-EXPORT_SYMBOL(sm_sus_paths);
-EXPORT_SYMBOL(sm_sus_kstats);
-EXPORT_SYMBOL(sm_sus_maps);
-EXPORT_SYMBOL(sm_open_redirects);
-EXPORT_SYMBOL(sm_sus_lock);
-EXPORT_SYMBOL(sm_hide_sus_mnts);
-EXPORT_SYMBOL(sm_log_enabled);
 
 /* ── Cleanup helpers ── */
 static void free_list_sus_path(void)
