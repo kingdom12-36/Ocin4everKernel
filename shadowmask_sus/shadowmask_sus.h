@@ -14,6 +14,7 @@
 #include <linux/list.h>
 #include <linux/spinlock.h>
 #include <linux/stat.h>
+#include <linux/prctl.h>
 
 /* ── SUSFS ABI (must match ksu_susfs userspace tool) ── */
 #define KSU_INSTALL_MAGIC1                  0xDEADBEEF
