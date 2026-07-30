@@ -84,31 +84,14 @@ bool sm_is_map_hidden(const char *path)
 }
 
 /* ── /proc/pid/maps filter ── */
-/*
- * The seq_file for /proc/pid/maps writes one VMA per call to show().
- * We intercept, capture the output into a temporary buffer, then
- * check if the path in that line is hidden — if so, suppress it.
- */
 
-struct sm_maps_ctx {
-    struct seq_file *real_m;
-    char             buf[PATH_MAX + 256];
-    size_t           len;
-    bool             suppress;
-};
-
-/* We temporarily redirect seq_file output to our buffer */
 static int maps_show_filter(struct seq_file *m, void *v)
 {
-    /* Use a shadow seq_file approach:
-     * Call the original show, then scan the newly written bytes.
-     * If the line contains a hidden path, remove those bytes. */
-
     size_t before;
     size_t after;
     char  *line_start;
     char  *newline;
-    char   line_copy[PATH_MAX + 128];
+    char  *line_copy;
     int    ret;
 
     if (!is_app_process())
@@ -118,19 +101,28 @@ static int maps_show_filter(struct seq_file *m, void *v)
     ret = orig_maps_show(m, v);
     after  = m->count;
 
-    if (ret || after <= before)
+    if (ret || after <= before || !m->buf)
         return ret;
 
-    /* Examine the newly written line */
+    /* Verify memory bounds before reading */
+    if (after > m->size)
+        return ret;
+
+    line_copy = kmalloc(PATH_MAX + 128, GFP_ATOMIC);
+    if (!line_copy)
+        return ret;
+
     line_start = m->buf + before;
     newline    = memchr(line_start, '\n', after - before);
 
-    /* Copy line for inspection (don't trust the seq_file buffer directly) */
     {
         size_t line_len = newline ? (size_t)(newline - line_start + 1)
                                   : (after - before);
-        if (line_len >= sizeof(line_copy))
+
+        if (line_len >= (PATH_MAX + 128)) {
+            kfree(line_copy);
             return ret;
+        }
 
         memcpy(line_copy, line_start, line_len);
         line_copy[line_len] = '\0';
@@ -152,26 +144,22 @@ static int maps_show_filter(struct seq_file *m, void *v)
                 char *end = strchr(p, '\n');
                 if (end) *end = '\0';
                 if (sm_is_map_hidden(p)) {
-                    /* Erase the line from the seq_file buffer */
+                    /* Erase line safely */
                     m->count = before;
                     sm_dbg("maps: suppressed %s", p);
                 }
             }
         }
     }
+
+    kfree(line_copy);
     return ret;
 }
 
 /* ── /proc/pid/mountinfo + /proc/mounts filter ── */
-/*
- * mountinfo lines look like:
- *   36 35 98:0 /mnt1 /mnt2 rw,noatime master:1 - ext3 /dev/root rw,...
- * We check if the mount point or source path is a sus_path/sus_mount.
- */
 
 static bool mountinfo_line_is_hidden(const char *line, size_t len)
 {
-    /* Quick check: look for known root-related strings */
     static const char * const sus_markers[] = {
         "/data/adb",
         "/.shadowmask",
@@ -182,7 +170,6 @@ static bool mountinfo_line_is_hidden(const char *line, size_t len)
         "shadowmask",
         NULL,
     };
-    /* FIX: Correct pointer qualifier type for const char * const array */
     const char * const *m;
 
     if (!sm_hide_sus_mnts)
@@ -200,14 +187,19 @@ static bool mountinfo_line_is_hidden(const char *line, size_t len)
     /* Check user-added sus_paths */
     {
         struct sus_path_node *node;
+        bool hidden = false;
+
         spin_lock(&sm_sus_lock);
         list_for_each_entry(node, &sm_sus_paths, list) {
             if (strnstr(line, node->pathname, len)) {
-                spin_unlock(&sm_sus_lock);
-                return true;
+                hidden = true;
+                break;
             }
         }
         spin_unlock(&sm_sus_lock);
+        
+        if (hidden)
+            return true;
     }
 
     return false;
@@ -222,7 +214,10 @@ static int mountinfo_show_filter(struct seq_file *m, void *v)
     ret    = orig_mountinfo_show(m, v);
     after  = m->count;
 
-    if (ret || after <= before)
+    if (ret || after <= before || !m->buf)
+        return ret;
+
+    if (after > m->size)
         return ret;
 
     {
@@ -246,7 +241,10 @@ static int mounts_show_filter(struct seq_file *m, void *v)
     ret    = orig_mounts_show(m, v);
     after  = m->count;
 
-    if (ret || after <= before)
+    if (ret || after <= before || !m->buf)
+        return ret;
+
+    if (after > m->size)
         return ret;
 
     {
@@ -323,7 +321,7 @@ int sm_proc_hook_init(void)
         sm_err("mountinfo_op not found — mountinfo filter disabled");
     }
 
-    /* /proc/pid/mounts (same data, different format) */
+    /* /proc/pid/mounts */
     mounts_op = (struct seq_operations *)
         kallsyms_lookup_name("mounts_op");
     if (mounts_op) {
