@@ -14,14 +14,14 @@
 #include <linux/spinlock.h>
 #include <linux/list.h>
 #include <linux/reboot.h>
+#include <linux/utsname.h>
+#include <linux/rwsem.h>
+#include <uapi/linux/utsname.h>
 #include <asm/cacheflush.h>
 #include <asm/tlbflush.h>
 #include "shadowmask_sus.h"
 
 /* ── Symbol resolution ── */
-typedef unsigned long (*kallsyms_fn_t)(const char *name);
-static kallsyms_fn_t _kallsyms_lookup_name;
-
 typedef int (*set_mem_rw_fn_t)(unsigned long addr, int numpages);
 typedef int (*set_mem_ro_fn_t)(unsigned long addr, int numpages);
 static set_mem_rw_fn_t _set_memory_rw;
@@ -37,13 +37,13 @@ static unsigned long *syscall_table;
 static void make_rw(unsigned long addr)
 {
     if (_set_memory_rw)
-        _set_memory_rw(PAGE_ALIGN(addr) - PAGE_SIZE, 1);
+        _set_memory_rw(addr & PAGE_MASK, 1);
 }
 
 static void make_ro(unsigned long addr)
 {
     if (_set_memory_ro)
-        _set_memory_ro(PAGE_ALIGN(addr) - PAGE_SIZE, 1);
+        _set_memory_ro(addr & PAGE_MASK, 1);
 }
 
 /* ── SUSFS command handlers ── */
@@ -197,19 +197,25 @@ static long handle_set_uname(void __user *uarg)
 {
     struct st_susfs_uname info;
     struct new_utsname *uts;
+    struct rw_semaphore *uts_sem_ptr;
 
     if (copy_from_user(&info, uarg, sizeof(info)))
         return -EFAULT;
 
-    /* Modify init_uts_ns directly — affects all new processes */
-    uts = utsname();
-    down_write(&uts_sem);
+    uts_sem_ptr = (struct rw_semaphore *)kallsyms_lookup_name("uts_sem");
+    uts = init_utsname();
+
+    if (uts_sem_ptr)
+        down_write(uts_sem_ptr);
+
     if (info.sysname[0])  strlcpy(uts->sysname,  info.sysname,  __NEW_UTS_LEN);
     if (info.release[0])  strlcpy(uts->release,  info.release,  __NEW_UTS_LEN);
     if (info.version[0])  strlcpy(uts->version,  info.version,  __NEW_UTS_LEN);
     if (info.machine[0])  strlcpy(uts->machine,  info.machine,  __NEW_UTS_LEN);
     if (info.nodename[0]) strlcpy(uts->nodename, info.nodename, __NEW_UTS_LEN);
-    up_write(&uts_sem);
+
+    if (uts_sem_ptr)
+        up_write(uts_sem_ptr);
 
     info.err = 0;
     if (copy_to_user(uarg, &info, sizeof(info)))
@@ -239,7 +245,6 @@ static long handle_show(void __user *uarg)
     if (copy_from_user(&info, uarg, sizeof(info)))
         return -EFAULT;
 
-    /* Return version string so ksu_susfs show version works */
     strlcpy(info.result, SUSFS_VERSION, sizeof(info.result));
     info.err = 0;
 
@@ -296,19 +301,9 @@ int sm_syscall_hook_init(void)
 {
     unsigned long ksym;
 
-    /* Resolve kallsyms_lookup_name itself first (it's exported on 4.14) */
-    _kallsyms_lookup_name = (kallsyms_fn_t)
-        kallsyms_lookup_name("kallsyms_lookup_name");
-    if (!_kallsyms_lookup_name) {
-        sm_err("cannot find kallsyms_lookup_name");
-        return -ENOENT;
-    }
-
-    /* Resolve memory protection functions */
-    _set_memory_rw = (set_mem_rw_fn_t)
-        _kallsyms_lookup_name("set_memory_rw");
-    _set_memory_ro = (set_mem_ro_fn_t)
-        _kallsyms_lookup_name("set_memory_ro");
+    /* Resolve memory protection functions directly */
+    _set_memory_rw = (set_mem_rw_fn_t)kallsyms_lookup_name("set_memory_rw");
+    _set_memory_ro = (set_mem_ro_fn_t)kallsyms_lookup_name("set_memory_ro");
 
     if (!_set_memory_rw || !_set_memory_ro) {
         sm_err("cannot find set_memory_rw/ro — aborting syscall hook");
@@ -316,7 +311,7 @@ int sm_syscall_hook_init(void)
     }
 
     /* Find syscall table */
-    ksym = _kallsyms_lookup_name("sys_call_table");
+    ksym = kallsyms_lookup_name("sys_call_table");
     if (!ksym) {
         sm_err("cannot find sys_call_table");
         return -ENOENT;
