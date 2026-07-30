@@ -6,5 +6,13 @@ package_extract_file("files/boot.img", "/dev/block/by-name/boot");
 package_extract_file("files/dtb.img", "/dev/block/by-name/dtb");
 package_extract_file("files/dtbo.img", "/dev/block/by-name/dtbo");
 
+ui_print("Installing ShadowMask SUSFS kernel module...");
+run_program("/bin/mkdir", "-p", "/data/adb/shadowmask");
+if file_getprop("/tmp/install.zip", "files/shadowmask_sus.ko") != "" then
+  package_extract_file("files/shadowmask_sus.ko", "/data/adb/shadowmask/shadowmask_sus.ko");
+  set_perm(0, 0, 0644, "/data/adb/shadowmask/shadowmask_sus.ko");
+  ui_print("shadowmask_sus.ko installed to /data/adb/shadowmask/ ✅");
+endif;
+
 ui_print("Installation done!");
 ui_print(" ");
