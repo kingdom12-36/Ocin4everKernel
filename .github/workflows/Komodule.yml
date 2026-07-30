@@ -1,0 +1,49 @@
+name: Build ShadowMask SUS Module
+
+on:
+  push:
+    paths:
+      - 'shadowmask_sus/**'
+      - '.github/workflows/build-module.yml'
+  workflow_dispatch:
+
+jobs:
+  build-module:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Neutron Toolchain
+        run: |
+          mkdir -p toolchain/neutron_18
+          cd toolchain/neutron_18
+          curl -s "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman" | bash -s -- -S=05012024
+          curl -s "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman" | bash -s -- --patch=glibc
+
+      - name: Prepare Kernel Headers (Fast)
+        run: |
+          export PATH=$PWD/toolchain/neutron_18/bin:$PATH
+          make LLVM=1 LLVM_IAS=1 ARCH=arm64 O=out exynos9820_defconfig
+          make LLVM=1 LLVM_IAS=1 ARCH=arm64 O=out modules_prepare -j$(nproc)
+
+      - name: Build shadowmask_sus.ko
+        run: |
+          export PATH=$PWD/toolchain/neutron_18/bin:$PATH
+          make -C $PWD \
+            LLVM=1 \
+            LLVM_IAS=1 \
+            ARCH=arm64 \
+            O=out \
+            M=$PWD/shadowmask_sus \
+            modules -j$(nproc)
+
+      - name: Verify and Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: shadowmask_sus_module
+          path: |
+            shadowmask_sus/shadowmask_sus.ko
+            out/shadowmask_sus/shadowmask_sus.ko
+          if-no-files-found: error
