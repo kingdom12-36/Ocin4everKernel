@@ -58,16 +58,5 @@
 #define DATA_ADB_NO_AUTO_ADD_SUS_BIND_MOUNT "/data/adb/susfs_no_auto_add_sus_bind_mount"
 #define DATA_ADB_NO_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT "/data/adb/susfs_no_auto_add_sus_ksu_default_mount"
 #define DATA_ADB_NO_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT "/data/adb/susfs_no_auto_add_try_umount_for_bind_mount"
-/* Missing Magic and Commands required by KernelSU supercalls.c */
-#ifndef SUSFS_MAGIC
-#define SUSFS_MAGIC 0x53555346
-#endif
-
-#define CMD_SUSFS_ADD_SUS_PATH_LOOP              0x55551
-#define CMD_SUSFS_SET_ANDROID_DATA_ROOT_PATH     0x55552
-#define CMD_SUSFS_SET_SDCARD_ROOT_PATH           0x55553
-#define CMD_SUSFS_HIDE_SUS_MNTS_FOR_NON_SU_PROCS 0x55561
-#define CMD_SUSFS_ADD_SUS_MAP                    0x555d1
-#define CMD_SUSFS_ENABLE_AVC_LOG_SPOOFING        0x555e0
 
 #endif // #ifndef KSU_SUSFS_DEF_H

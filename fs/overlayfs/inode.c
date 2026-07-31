@@ -69,7 +69,6 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
 	bool is_dir = S_ISDIR(dentry->d_inode->i_mode);
 	int err;
 
-#ifdef CONFIG_KSU_SUSFS_SUS_OVERLAYFS
 	ovl_path_lowerdata(dentry, &realpath);
 	if (likely(realpath.mnt && realpath.dentry)) {
 		old_cred = ovl_override_creds(dentry->d_sb);
