@@ -1,6 +1,7 @@
 name: Update KernelSU-Next Pointers
 
 on:
+  push: 
   workflow_dispatch:
 
 jobs:
