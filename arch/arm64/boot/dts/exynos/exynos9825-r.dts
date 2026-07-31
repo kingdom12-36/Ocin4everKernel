@@ -250,6 +250,14 @@
 	firmware {
 		android: android {
 			compatible = "android,firmware";
+			vbmeta {
+				compatible = "android,vbmeta";
+				parts = "vbmeta,boot,recovery,system,vendor,product,dtb,dtbo,keystorage";
+				status = "disabled";
+			};
+			fstab {
+				compatible = "android,fstab";
+			};
 		};
 	};
 
