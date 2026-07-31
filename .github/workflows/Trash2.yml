@@ -71,8 +71,10 @@ jobs:
           if ! git diff --cached --quiet; then
             echo "Changes detected, committing..."
             git commit -m "chore: update KernelSU-Next pointers to ba4422f055"
+            
+            # جلب التحديثات الأخيرة لتفادي التعارض ثم الدفع
+            git pull --rebase origin ${GITHUB_REF_NAME}
             git push
           else
             echo "No changes detected. Pointers are already at $KSU_HASH."
           fi
-
