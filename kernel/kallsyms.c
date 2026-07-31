@@ -11,6 +11,7 @@
  *      Changed the compression method from stem compression to "table lookup"
  *      compression (see scripts/kallsyms.c for a more complete description)
  */
+#include <linux/module.h> //fix compiler issue
 #include <linux/kallsyms.h>
 #include <linux/init.h>
 #include <linux/seq_file.h>
