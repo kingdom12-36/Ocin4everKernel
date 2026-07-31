@@ -703,7 +703,8 @@ static const struct seq_operations kallsyms_op = {
 static inline int kallsyms_for_perf(void)
 {
 #ifdef CONFIG_PERF_EVENTS
-	extern int sysctl_perf_event_paranoid;
+	struct cred;
+extern bool kallsyms_show_value(const struct cred *cred);
 	if (sysctl_perf_event_paranoid <= 1)
 		return 1;
 #endif
