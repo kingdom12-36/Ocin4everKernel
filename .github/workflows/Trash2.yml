@@ -21,7 +21,7 @@ jobs:
       - name: Update KernelSU-Next pointers
         run: |
           KSU_REPO="https://github.com/KernelSU-Next/KernelSU-Next.git"
-          KSU_HASH="ba4422f0556e10f40dda1887631d87a18ede4ec5"
+          KSU_HASH="e8e6836425478ee44d026576f8127936d383ded5"
           
           echo "=> Updating KernelSU-Next paths to commit $KSU_HASH"
           
