@@ -1,81 +1,76 @@
-name: Update KernelSU-Next Pointers
+name: Fetch SuSFS Raw Files
 
 on:
-  push: 
   workflow_dispatch:
 
 jobs:
-  update-ksu:
+  copy-files:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
-      - name: Checkout repository
+      - name: Checkout local repository (sparse)
         uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
-          fetch-depth: 0
+          fetch-depth: 1
           token: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Update KernelSU-Next pointers
+
+      - name: Download target files directly via API
         run: |
-          KSU_REPO="https://github.com/KernelSU-Next/KernelSU-Next.git"
-          KSU_HASH="e8e6836425478ee44d026576f8127936d383ded5"
-          
-          echo "=> Updating KernelSU-Next paths to commit $KSU_HASH"
-          
-          UPDATED=0
+          REPO="kingdom12-36/trash2"
+          COMMIT="e1f6d7420124577902c3d8541caed0231c4c69d4"
+          RAW_BASE="https://raw.githubusercontent.com/${REPO}/${COMMIT}"
 
-          # ---------------------------------------------------------
-          # Path 1: KernelSU-Next
-          # ---------------------------------------------------------
-          if [ -d "KernelSU-Next" ]; then
-            echo "Processing KernelSU-Next..."
-            cd KernelSU-Next
-            git remote add ksu_next $KSU_REPO || true
-            git fetch ksu_next $KSU_HASH
-            git checkout FETCH_HEAD
-            cd ..
-            git add KernelSU-Next
-            UPDATED=1
-          else
-            echo "Skipping KernelSU-Next (Directory not found)"
-          fi
-          
-          # ---------------------------------------------------------
-          # Path 2: drivers/kernelsu
-          # ---------------------------------------------------------
-          if [ -d "drivers/kernelsu" ]; then
-            echo "Processing drivers/kernelsu..."
-            cd drivers/kernelsu
-            git remote add ksu_next $KSU_REPO || true
-            git fetch ksu_next $KSU_HASH
-            git checkout FETCH_HEAD
-            cd ../..
-            git add drivers/kernelsu
-            UPDATED=1
-          else
-            echo "Skipping drivers/kernelsu (Directory not found)"
-          fi
+          # قائمة الملفات المطلوبة
+          FILES=(
+            "arch/arm64/configs/ksu.config"
+            "fs/Makefile"
+            "fs/namei.c"
+            "fs/namespace.c"
+            "fs/notify/fdinfo.c"
+            "fs/proc_namespace.c"
+            "fs/proc/base.c"
+            "fs/proc/cmdline.c"
+            "fs/proc/fd.c"
+            "fs/proc/task_mmu.c"
+            "fs/readdir.c"
+            "fs/stat.c"
+            "fs/statfs.c"
+            "fs/susfs.c"
+            "include/linux/seccomp.h"
+            "include/linux/susfs.h"
+            "include/linux/susfs_def.h"
+            "kernel/kallsyms.c"
+            "kernel/sys.c"
+            "security/selinux/avc.c"
+          )
 
-          if [ $UPDATED -eq 0 ]; then
-            echo "Error: Neither KernelSU-Next nor drivers/kernelsu directory was found!"
-            exit 1
-          fi
-          
-      - name: Commit and push changes
+          echo "==> Downloading files directly..."
+
+          for FILE in "${FILES[@]}"; do
+            # إنشاء المجلد إذا لم يكن موجوداً
+            mkdir -p "$(dirname "$FILE")"
+            
+            # تنزيل الملف المباشر واستبداله
+            echo "Fetching: $FILE"
+            curl -sSL "${RAW_BASE}/${FILE}" -o "$FILE"
+          done
+
+      - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          
+
+          git add .
+
           if ! git diff --cached --quiet; then
             echo "Changes detected, committing..."
-            git commit -m "chore: update KernelSU-Next pointers to ba4422f055"
+            git commit -m "style: direct overwrite susfs files from trash2 commit e1f6d74"
             
-            # جلب التحديثات الأخيرة لتفادي التعارض ثم الدفع
+            # سحب التغيرات السريعة قبل الدفع لتفادي التعارض
             git pull --rebase origin ${GITHUB_REF_NAME}
             git push
           else
-            echo "No changes detected. Pointers are already at $KSU_HASH."
+            echo "No changes detected. Files are identical."
           fi
