@@ -1,7 +1,6 @@
-name: Fetch SuSFS Raw Files
+name: Fetch Minimized Hooks Files
 
 on:
-  push: 
   workflow_dispatch:
 
 jobs:
@@ -20,40 +19,24 @@ jobs:
       - name: Download target files directly via API
         run: |
           REPO="kingdom12-36/trash2"
-          COMMIT="e1f6d7420124577902c3d8541caed0231c4c69d4"
+          COMMIT="6591eda711915aa564fa21cd3d5159b0a994509a"
           RAW_BASE="https://raw.githubusercontent.com/${REPO}/${COMMIT}"
 
-          # قائمة الملفات المطلوبة
+          # قائمة الملفات الـ 7 المطلوبة
           FILES=(
-            "arch/arm64/configs/ksu.config"
-            "fs/Makefile"
-            "fs/namei.c"
-            "fs/namespace.c"
-            "fs/notify/fdinfo.c"
-            "fs/proc_namespace.c"
-            "fs/proc/base.c"
-            "fs/proc/cmdline.c"
-            "fs/proc/fd.c"
-            "fs/proc/task_mmu.c"
-            "fs/readdir.c"
+            "drivers/input/input.c"
+            "fs/devpts/inode.c"
+            "fs/exec.c"
+            "fs/open.c"
+            "fs/read_write.c"
             "fs/stat.c"
-            "fs/statfs.c"
-            "fs/susfs.c"
-            "include/linux/seccomp.h"
-            "include/linux/susfs.h"
-            "include/linux/susfs_def.h"
-            "kernel/kallsyms.c"
-            "kernel/sys.c"
-            "security/selinux/avc.c"
+            "kernel/reboot.c"
           )
 
           echo "==> Downloading files directly..."
 
           for FILE in "${FILES[@]}"; do
-            # إنشاء المجلد إذا لم يكن موجوداً
             mkdir -p "$(dirname "$FILE")"
-            
-            # تنزيل الملف المباشر واستبداله
             echo "Fetching: $FILE"
             curl -sSL "${RAW_BASE}/${FILE}" -o "$FILE"
           done
@@ -67,9 +50,8 @@ jobs:
 
           if ! git diff --cached --quiet; then
             echo "Changes detected, committing..."
-            git commit -m "style: direct overwrite susfs files from trash2 commit e1f6d74"
+            git commit -m "style: direct overwrite manual hooks files from trash2 commit 6591eda"
             
-            # سحب التغيرات السريعة قبل الدفع لتفادي التعارض
             git pull --rebase origin ${GITHUB_REF_NAME}
             git push
           else
