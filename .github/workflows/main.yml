@@ -14,7 +14,8 @@ jobs:
           repository: 'kingdom12-36/Ocin4everKernel'
           ref: 'Patient'
           fetch-depth: 0
-          token: ${{ secrets.FCK_SUBMODULES }} #ocin idiot token name
+          submodules: 'recursive' # جلب الفرع مع الـ Submodules
+          token: ${{ secrets.FCK_SUBMODULES }}
 
       - name: Configure Git User
         run: |
@@ -26,11 +27,18 @@ jobs:
           git remote add upstream https://github.com/ExtremeXT/M62-backport.git
           git fetch upstream main
 
-      - name: Force Merge Changes
+      - name: Force Merge Changes & Fix Submodule Conflict
         run: |
-          git merge upstream/main --allow-unrelated-histories -X theirs -m "Auto-merge update"
+          # محاولة الدمج مع تفضيل التغييرات القادمة من upstream
+          git merge upstream/main --allow-unrelated-histories -X theirs -m "Auto-merge update" || true
+          
+          # في حال وجود تعارض في KernelSU-Next يتم اعتماد النسخة وتحديث الـ Submodule
+          git submodule update --init --recursive
+          git add KernelSU-Next
+          
+          # إنهاء الدمج في حال كان هناك تغييرات معلقة
+          git commit -m "Auto-merge update and resolved submodule conflicts" || true
 
       - name: Push Changes Back to Base
         run: |
           git push origin Patient
-
