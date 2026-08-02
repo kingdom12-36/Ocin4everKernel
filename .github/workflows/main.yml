@@ -2,11 +2,11 @@ name: Build Kernel with NoMount Hooks
 
 on:
   push:
-   
+    
   workflow_dispatch:
 
 env:
-  # ⚠️ استبدل اسم الملف باسم defconfig الخاص بجهارك بداخل arch/arm64/configs
+  # ⚠️ استبدل اسم الـ defconfig باسم الملف المخصص لجهازك في arch/arm64/configs
   DEFCONFIG_NAME: "exynos9820_defconfig"
 
 jobs:
@@ -14,18 +14,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. تنظيف مساحة القرص لتجنب خطأ No space left on device
+      - name: Free Disk Space
+        run: |
+          echo "==> Freeing up space on runner..."
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          sudo apt-get clean
+          echo "==> Available space after cleanup:"
+          df -h /
+
+      # 2. سحب السورس كود الخاص بالـ Kernel
       - name: Checkout Kernel Source
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
+      # 3. تثبيت حزم وتدابير التجميع
       - name: Install Build Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             build-essential bc libncurses5-dev libssl-dev libelf-dev \
-            flex bison ccache git patch python3 wget zip libssl-dev
+            flex bison ccache git patch python3 wget zip
 
+      # 4. إنشآء وتشغيل سكربت الترقيع وحقن الـ Hooks
       - name: Create and Execute NoMount Patcher
         shell: bash
         run: |
@@ -67,7 +83,7 @@ jobs:
           )
 
           for i in "${patch_files[@]}"; do
-              if [ ! -f "$i" ]; then continue; fi
+              if [ ! -f "$i" ]; me continue; fi
               if grep -q "NOMOUNT" "$i"; then
                   echo "[-] $i already patched."
                   continue
@@ -90,11 +106,11 @@ jobs:
                   if grep -q "return __inode_permission2" "fs/namei.c"; then
                       sed -i '0,/^[[:space:]]*if (unlikely(mask & MAY_WRITE)) {/s/^[[:space:]]*if (unlikely(mask & MAY_WRITE)) {/#ifdef CONFIG_NOMOUNT\n\tint nm_perm = nomount_handle_permission(inode, mask);\n\tif (unlikely(nm_perm < 0)) return nm_perm;\n\tif (unlikely(nm_perm > 0)) return 0;\n#endif\n&/' fs/namei.c
                   else
-                      sed -i $'/^[[:space:]]*retval = sb_permission(inode->i_sb, inode, mask);/i\\\n#ifdef CONFIG_NOMOUNT\\\n\tint nm_perm = nomount_handle_permission(inode, mask);\\\n\tif (unlikely(nm_perm < 0)) return nm_perm;\n\tif (unlikely(nm_perm > 0)) return 0;\n#endif' fs/namei.c
+                      sed -i $'/^[[:space:]]*retval = sb_permission(inode->i_sb, inode, mask);/i\\\n#ifdef CONFIG_NOMOUNT\\\n\tint nm_perm = nomount_handle_permission(inode, mask);\n\tif (unlikely(nm_perm < 0)) return nm_perm;\n\tif (unlikely(nm_perm > 0)) return 0;\n#endif' fs/namei.c
                   fi
                   ;;
               fs/proc/task_mmu.c)
-                  sed -i '/^static void$/{N;/show_map_vma(struct seq_file \*m, struct vm_area_struct \*vma, int is_pid)/i\#ifdef CONFIG_NOMOUNT\nextern bool nomount_spoof_mmap_metadata(struct inode *inode, dev_t *dev, unsigned long *ino);\n#endif\n' fs/proc/task_mmu.c
+                  sed -i '/show_map_vma(struct seq_file \*m, struct vm_area_struct \*vma, int is_pid)/i\#ifdef CONFIG_NOMOUNT\nextern bool nomount_spoof_mmap_metadata(struct inode *inode, dev_t *dev, unsigned long *ino);\n#endif\n' fs/proc/task_mmu.c
                   sed -i '/pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;/i\#ifdef CONFIG_NOMOUNT\n\t\tnomount_spoof_mmap_metadata(inode, \&dev, \&ino);\n#endif\n' fs/proc/task_mmu.c
                   ;;
               fs/readdir.c)
@@ -125,6 +141,7 @@ jobs:
           chmod +x patch_nomount.sh
           ./patch_nomount.sh
 
+      # 5. حقن خيار CONFIG_NOMOUNT=y في ملف defconfig
       - name: Append CONFIG_NOMOUNT to DEFCONFIG
         shell: bash
         run: |
@@ -138,13 +155,15 @@ jobs:
           echo "# NoMount Configuration" >> "$DEFCONFIG_PATH"
           echo "CONFIG_NOMOUNT=y" >> "$DEFCONFIG_PATH"
 
+      # 6. التأكد من حالة الملفات المعدلة
       - name: Verify Modifications
         run: |
           git status --short
 
+      # 7. التجميع (أضف أوامرك الخاصة هنا)
       - name: Compile Kernel
         run: |
-          echo "==> Ready to compile kernel with NoMount enabled."
-          # ضع هنا أوامر التجميع الخاصة بك (Toolchain/Make Commands):
+          echo "==> Executing make defconfig and compilation..."
           # make ARCH=arm64 ${{ env.DEFCONFIG_NAME }}
           # make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-android-
+
