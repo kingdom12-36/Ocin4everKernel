@@ -1,0 +1,172 @@
+name: Kernel Build Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Model to build (leave empty to build all)"
+        required: false
+        default: "all"
+        type: choice
+        options:
+        - all
+        - d1
+        - d1xks
+        - d2s
+        - d2x
+        - d2xks
+
+permissions:
+  contents: write
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      should_build_all: ${{ github.event.inputs.model == 'all' }}
+      ksu_tag: ${{ steps.ksu_version.outputs.tag }}
+      build_date: ${{ steps.ksu_version.outputs.date }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig
+      - name: Set should_build_all output
+        run: echo "should_build_all=${{ github.event.inputs.model == 'all' }}" >> $GITHUB_OUTPUT
+      - name: Resolve pinned KernelSU-Next version
+        id: ksu_version
+        run: |
+          cd KernelSU-Next
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo unknown)
+          SHA=$(git rev-parse --short HEAD)
+          echo "Pinned KernelSU-Next submodule: $TAG ($SHA)"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "date=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
+
+  build_d1:
+    needs: setup
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.model == 'd1' || needs.setup.outputs.should_build_all == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Build for d1
+        run: ./workflows.sh -m d1 -k Y -r N
+      - name: Verify build actually produced a flashable package
+        run: |
+          test -f build/out/d1/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
+          ls build/out/d1/*.zip || { echo "no flashable zip found in build/out/d1"; exit 1; }
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExtremeKRNL-Nexus-d1
+          path: build/out/d1/*.zip
+          if-no-files-found: error
+
+  build_d1xks:
+    needs: setup
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.model == 'd1xks' || needs.setup.outputs.should_build_all == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Build for d1xks
+        run: ./workflows.sh -m d1xks -k Y -r N
+      - name: Verify build actually produced a flashable package
+        run: |
+          test -f build/out/d1xks/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
+          ls build/out/d1xks/*.zip || { echo "no flashable zip found in build/out/d1xks"; exit 1; }
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExtremeKRNL-Nexus-d1xks
+          path: build/out/d1xks/*.zip
+          if-no-files-found: error
+
+  build_d2s:
+    needs: setup
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.model == 'd2s' || needs.setup.outputs.should_build_all == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ secrets.FCK_SUBMODULES }}
+      - name: Build for d2s
+        run: ./workflows.sh -m d2s -k Y -r N
+      - name: Verify build actually produced a flashable package
+        run: |
+          test -f build/out/d2s/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
+          ls build/out/d2s/*.zip || { echo "no flashable zip found in build/out/d2s"; exit 1; }
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExtremeKRNL-Nexus-d2s
+          path: build/out/d2s/*.zip
+          if-no-files-found: error
+
+  build_d2x:
+    needs: setup
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.model == 'd2x' || needs.setup.outputs.should_build_all == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Build for d2x
+        run: ./workflows.sh -m d2x -k Y -r N
+      - name: Verify build actually produced a flashable package
+        run: |
+          test -f build/out/d2x/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
+          ls build/out/d2x/*.zip || { echo "no flashable zip found in build/out/d2x"; exit 1; }
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExtremeKRNL-Nexus-d2x
+          path: build/out/d2x/*.zip
+          if-no-files-found: error
+
+  build_d2xks:
+    needs: setup
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.model == 'd2xks' || needs.setup.outputs.should_build_all == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Build for d2xks
+        run: ./workflows.sh -m d2xks -k Y -r N
+      - name: Verify build actually produced a flashable package
+        run: |
+          test -f build/out/d2xks/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
+          ls build/out/d2xks/*.zip || { echo "no flashable zip found in build/out/d2xks"; exit 1; }
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ExtremeKRNL-Nexus-d2xks
+          path: build/out/d2xks/*.zip
+          if-no-files-found: error
+
+  release:
+    needs: [setup, build_d1, build_d1xks, build_d2s, build_d2x, build_d2xks]
+    if: ${{ needs.setup.outputs.should_build_all == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ needs.setup.outputs.ksu_tag }}-${{ needs.setup.outputs.build_date }}-${{ github.run_number }}
+          name: "ExtremeKRNL-Nexus — KernelSU-Next ${{ needs.setup.outputs.ksu_tag }} (${{ needs.setup.outputs.build_date }})"
+          body: |
+            Automated build. KernelSU-Next pinned to `${{ needs.setup.outputs.ksu_tag }}`.
+          files: artifacts/**/*.zip
+          fail_on_unmatched_files: true
