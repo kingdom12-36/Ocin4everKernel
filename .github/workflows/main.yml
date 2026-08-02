@@ -1,6 +1,7 @@
 name: Auto Merge Kernel Changes
 
 on:
+  push: 
   workflow_dispatch:
 
 jobs:
