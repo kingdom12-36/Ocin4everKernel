@@ -1,108 +1,117 @@
-name: Apply SUSFS Patch and Build Kernel
+name: Patch SuSFS and Build Kernel
 
 on:
   push:
+    branches: [ "mainline", "main", "master" ]
   workflow_dispatch:
 
+env:
+  # ⚠️ استبدل باسم ملف الـ defconfig الخاص بك في السورس (مثال: exynos9820_defconfig أو defconfig)
+  DEFCONFIG_NAME: "your_defconfig_name" 
+
 jobs:
-  patch-and-build:
+  build-kernel:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout Kernel Source
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.FCK_SUBMODULES }} # استخدام توكن الدفع المسجل في secrets
+          token: ${{ secrets.FCK_SUBMODULES }}
 
       - name: Install Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential bc libncurses5-dev libssl-dev libelf-dev flex bison ccache git python3 wget
+          sudo apt-get install -y build-essential bc libncurses5-dev libssl-dev libelf-dev flex bison ccache git patch python3 wget
 
-      - name: Download & Smart Apply SUSFS Patch
-        env:
-          GITHUB_TOKEN: ${{ secrets.FCK_SUBMODULES }}
+      
+      - name: Append KSU & SUSFS Configs to DEFCONFIG
+        shell: bash
         run: |
-          echo "==> Downloading SUSFS Patch from remote GitHub repository..."
-          
+          # البحث عن ملف الـ defconfig
+          DEFCONFIG_PATH=$(find arch/arm64/configs -name "${{ env.DEFCONFIG_NAME }}" | head -n 1)
+
+          if [ -z "$DEFCONFIG_PATH" ]; then
+            DEFCONFIG_PATH=$(find arch/ -name "*defconfig" | head -n 1)
+          fi
+
+          echo "==> Target DEFCONFIG File: $DEFCONFIG_PATH"
+          echo "==> Injecting KernelSU & SUSFS Configs..."
+
+          # كتابة الخيارات باستخدام echo سطر بسطر
+          echo "# KernelSU & SUSFS Configuration" >> "$DEFCONFIG_PATH"
+          echo "CONFIG_KSU=y" >> "$DEFCONFIG_PATH"
+          echo "CONFIG_KSU_SUSFS=y" >> "$DEFCONFIG_PATH"
+          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> "$DEFCONFIG_PATH"
+          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> "$DEFCONFIG_PATH"
+          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> "$DEFCONFIG_PATH"
+          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> "$DEFCONFIG_PATH"
+          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> "$DEFCONFIG_PATH"
+          echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> "$DEFCONFIG_PATH"
+          echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> "$DEFCONFIG_PATH"
+          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> "$DEFCONFIG_PATH"
+          echo "CONFIG_KSU_SUSFS_SUS_MAP=y" >> "$DEFCONFIG_PATH"
+
+          # فحص THREAD_INFO_IN_TASK
+          if [ -f "drivers/kernelsu/Kconfig" ] && grep -q "THREAD_INFO_IN_TASK" "drivers/kernelsu/Kconfig"; then
+            echo "CONFIG_THREAD_INFO_IN_TASK=y" >> "$DEFCONFIG_PATH"
+          fi
+
+          echo "✅ Configs appended successfully!"
+
+      - name: Direct Download & Push SUSFS Patch
+        shell: bash
+        run: |
+          echo "==> Checking if SUSFS is already applied..."
+          if grep -q "CONFIG_KSU_SUSFS" "fs/namespace.c" 2>/dev/null; then
+            echo "[-] SUSFS is already patched in fs/namespace.c! Skipping patch step."
+            exit 0
+          fi
+
+          echo "==> Downloading SUSFS 4.14 Patch directly..."
           PATCH_URL="https://raw.githubusercontent.com/JackA1ltman/NonGKI_Kernel_Build_2nd/mainline/Patches/Patch/susfs_patch_to_4.14.patch"
           PATCH_FILE="susfs_patch_to_4.14.patch"
 
           wget -q "$PATCH_URL" -O "$PATCH_FILE"
 
           if [ ! -s "$PATCH_FILE" ]; then
-            echo "❌ ERROR: Failed to download 'susfs_patch_to_4.14.patch' or file is empty!"
+            echo "❌ Failed to download patch file!"
             exit 1
           fi
 
-          echo "✅ Downloaded patch successfully!"
-          echo "----------------------------------------"
           echo "==> Auto-creating any missing files/directories from patch..."
-
           python3 -c "
           import os, re
-
-          patch_path = '$PATCH_FILE'
-          with open(patch_path, 'r', encoding='utf-8', errors='ignore') as f:
+          with open('$PATCH_FILE', 'r', encoding='utf-8', errors='ignore') as f:
               content = f.read()
-
-          targets = set()
-          matches = re.findall(r'^(?:---|\+\+\+|diff --git a/)\s*a?/([^\s\t]+)', content, re.MULTILINE)
-          
-          for filepath in matches:
-              if filepath != 'dev/null' and not filepath.startswith('b/'):
-                  targets.add(filepath)
-
-          print('🔍 Referenced files in patch:')
+          targets = set(re.findall(r'^(?:---|\+\+\+|diff --git a/)\s*a?/([^\s\t]+)', content, re.MULTILINE))
           for t in sorted(targets):
-              print(f'   - {t}')
-              dirname = os.path.dirname(t)
-              if dirname and not os.path.exists(dirname):
-                  os.makedirs(dirname, exist_ok=True)
-              if not os.path.exists(t):
-                  print(f'   ✨ File missing! Auto-creating blank file: {t}')
-                  open(t, 'a').close()
+              if t != 'dev/null' and not t.startswith('b/'):
+                  dirname = os.path.dirname(t)
+                  if dirname and not os.path.exists(dirname):
+                      os.makedirs(dirname, exist_ok=True)
+                  if not os.path.exists(t):
+                      print(f'   ✨ Creating blank file: {t}')
+                      open(t, 'a').close()
           "
 
-          echo "----------------------------------------"
-          echo "==> Applying Patch now..."
-
-          # استخدام --ignore-space-change و --whitespace=fix لتجاوز فروقات الفراغات والـ Header
-          if git apply --ignore-space-change --ignore-whitespace "$PATCH_FILE" 2>/dev/null; then
-            echo "✅ Patch applies cleanly with whitespace ignore! Applying now..."
-            git apply --ignore-space-change --ignore-whitespace "$PATCH_FILE"
+          echo "==> Pushing (Dashing) patch into Kernel..."
+          if patch -p1 --fuzz=3 --ignore-whitespace < "$PATCH_FILE"; then
+            echo "✅ Patch pushed successfully into kernel source!"
+            rm -f "$PATCH_FILE"
           else
-            echo "⚠️ Trying with traditional 'patch' tool fallback (Fuzz Mode)..."
-            # استخدام أداة patch العادية بـ fuzz=3 التي تستطيع التغاضي عن اختلاف ترتيب الهيدرات
-            if patch -p1 --fuzz=3 --ignore-whitespace < "$PATCH_FILE"; then
-              echo "✅ Patch applied successfully using patch fallback!"
-            else
-              echo "⚠️ Fallback to git apply --reject..."
-              git apply --reject --ignore-space-change "$PATCH_FILE" || true
-              
-              REJ_FILES=$(find . -name "*.rej")
-              if [ -n "$REJ_FILES" ]; then
-                echo "----------------------------------------"
-                echo "❌ Conflicts found in the following files:"
-                echo "$REJ_FILES"
-                for f in $REJ_FILES; do
-                  echo "========================================"
-                  echo "=== Content of $f ==="
-                  echo "========================================"
-                  cat "$f"
-                done
-                exit 1
-              fi
-            fi
+            echo "❌ Fatal Error: Could not apply patch even with fuzz mode!"
+            exit 1
           fi
-
 
       - name: Verify Modified Files
         run: |
-          echo "==> Modified & Created files list:"
+          echo "==> Modified Status:"
           git status --short
 
       - name: Build Kernel
         run: |
           echo "==> Starting Kernel Compilation..."
-          # ضع أوامر البناء الخاصة بك هنا
+          # ⚠️ ضع هنا أسراب أوامر البناء الخاصة بك:
+          # make ARCH=arm64 ${{ env.DEFCONFIG_NAME }}
+          # make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
