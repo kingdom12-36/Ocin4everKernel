@@ -25,7 +25,6 @@ jobs:
         run: |
           echo "==> Downloading SUSFS Patch from remote GitHub repository..."
           
-          # رابط الـ Raw المباشر لملف الباتش
           PATCH_URL="https://raw.githubusercontent.com/JackA1ltman/NonGKI_Kernel_Build_2nd/mainline/Patches/Patch/susfs_patch_to_4.14.patch"
           PATCH_FILE="susfs_patch_to_4.14.patch"
 
@@ -40,7 +39,6 @@ jobs:
           echo "----------------------------------------"
           echo "==> Auto-creating any missing files/directories from patch..."
 
-          # سكربت بايثون يقرأ الباتش وينشئ أي ملف/مجلد غير موجود تلقائياً
           python3 -c "
           import os, re
 
@@ -69,29 +67,35 @@ jobs:
           echo "----------------------------------------"
           echo "==> Applying Patch now..."
 
-          if git apply --check "$PATCH_FILE" 2>/dev/null; then
-            echo "✅ Patch applies cleanly! Applying now..."
-            git apply "$PATCH_FILE"
+          # استخدام --ignore-space-change و --whitespace=fix لتجاوز فروقات الفراغات والـ Header
+          if git apply --ignore-space-change --ignore-whitespace "$PATCH_FILE" 2>/dev/null; then
+            echo "✅ Patch applies cleanly with whitespace ignore! Applying now..."
+            git apply --ignore-space-change --ignore-whitespace "$PATCH_FILE"
           else
-            echo "⚠️ Clean apply failed or had shifts! Trying reject mode..."
-            git apply --reject "$PATCH_FILE" || true
-            
-            REJ_FILES=$(find . -name "*.rej")
-            if [ -n "$REJ_FILES" ]; then
-              echo "----------------------------------------"
-              echo "❌ Conflicts found in the following files:"
-              echo "$REJ_FILES"
-              for f in $REJ_FILES; do
-                echo "========================================"
-                echo "=== Content of $f ==="
-                echo "========================================"
-                cat "$f"
-              done
-              exit 1
+            echo "⚠️ Trying with traditional 'patch' tool fallback (Fuzz Mode)..."
+            # استخدام أداة patch العادية بـ fuzz=3 التي تستطيع التغاضي عن اختلاف ترتيب الهيدرات
+            if patch -p1 --fuzz=3 --ignore-whitespace < "$PATCH_FILE"; then
+              echo "✅ Patch applied successfully using patch fallback!"
             else
-              echo "✅ Applied patch successfully!"
+              echo "⚠️ Fallback to git apply --reject..."
+              git apply --reject --ignore-space-change "$PATCH_FILE" || true
+              
+              REJ_FILES=$(find . -name "*.rej")
+              if [ -n "$REJ_FILES" ]; then
+                echo "----------------------------------------"
+                echo "❌ Conflicts found in the following files:"
+                echo "$REJ_FILES"
+                for f in $REJ_FILES; do
+                  echo "========================================"
+                  echo "=== Content of $f ==="
+                  echo "========================================"
+                  cat "$f"
+                done
+                exit 1
+              fi
             fi
           fi
+
 
       - name: Verify Modified Files
         run: |
