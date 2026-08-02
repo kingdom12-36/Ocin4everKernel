@@ -1,10 +1,19 @@
 ui_print(" ");
-ui_print("Installing ExtremeKRNL (S10/N10) UNOFFICIAL...");
+ui_print("Installing ExtremeKRNL (N10) UNOFFICIAL...");
 ui_print(" ");
 
 package_extract_file("files/boot.img", "/dev/block/by-name/boot");
 package_extract_file("files/dtb.img", "/dev/block/by-name/dtb");
 package_extract_file("files/dtbo.img", "/dev/block/by-name/dtbo");
+
+ui_print("Cleaning APEX directories...");
+
+run_program("/sbin/sh", "-c", "mount /data || mount -o rw,remount /data");
+
+run_program("/sbin/sh", "-c", "rm -rf /data/apex/active/*");
+run_program("/sbin/sh", "-c", "rm -rf /data/apex/sessions/*");
+run_program("/sbin/sh", "-c", "chattr +i /data/apex/active");
+run_program("/sbin/sh", "-c", "chattr +i /data/apex/sessions");
 
 ui_print("Installation done!");
 ui_print(" ");
