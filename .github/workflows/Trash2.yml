@@ -19,7 +19,7 @@ jobs:
       - name: Download target files directly via API
         run: |
           REPO="kingdom12-36/trash2"
-          COMMIT="6591eda711915aa564fa21cd3d5159b0a994509a"
+          COMMIT="a54e4fa46c6cc25bcaa055cf14d790194beffed8"
           RAW_BASE="https://raw.githubusercontent.com/${REPO}/${COMMIT}"
 
           # قائمة الملفات الـ 7 المطلوبة
