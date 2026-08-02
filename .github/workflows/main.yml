@@ -2,7 +2,6 @@ name: Apply SUSFS Patch and Build Kernel
 
 on:
   push:
-    branches: [ "mainline", "main", "master" ]
   workflow_dispatch:
 
 jobs:
@@ -12,27 +11,36 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.FCK_SUBMODULES }} # استخدام توكن الدفع المسجل في secrets
 
       - name: Install Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential bc libncurses5-dev libssl-dev libelf-dev flex bison ccache git python3
+          sudo apt-get install -y build-essential bc libncurses5-dev libssl-dev libelf-dev flex bison ccache git python3 wget
 
-      - name: Smart Auto-Create Missing Files & Apply SUSFS Patch
+      - name: Download & Smart Apply SUSFS Patch
+        env:
+          GITHUB_TOKEN: ${{ secrets.FCK_SUBMODULES }}
         run: |
-          echo "==> Searching for patch file..."
-          PATCH_FILE=$(find . -type f -name "susfs_patch_to_4.14.patch" | head -n 1)
+          echo "==> Downloading SUSFS Patch from remote GitHub repository..."
+          
+          # رابط الـ Raw المباشر لملف الباتش
+          PATCH_URL="https://raw.githubusercontent.com/JackA1ltman/NonGKI_Kernel_Build_2nd/mainline/Patches/Patch/susfs_patch_to_4.14.patch"
+          PATCH_FILE="susfs_patch_to_4.14.patch"
 
-          if [ -z "$PATCH_FILE" ]; then
-            echo "❌ ERROR: Could not find 'susfs_patch_to_4.14.patch' in repository!"
+          wget -q "$PATCH_URL" -O "$PATCH_FILE"
+
+          if [ ! -s "$PATCH_FILE" ]; then
+            echo "❌ ERROR: Failed to download 'susfs_patch_to_4.14.patch' or file is empty!"
             exit 1
           fi
 
-          echo "✅ Found patch at: $PATCH_FILE"
+          echo "✅ Downloaded patch successfully!"
           echo "----------------------------------------"
           echo "==> Auto-creating any missing files/directories from patch..."
 
-          # سكربت بايثون يقرأ مسارات الملفات من الباتش وينشئ أي ملف ناقص تلقائياً
+          # سكربت بايثون يقرأ الباتش وينشئ أي ملف/مجلد غير موجود تلقائياً
           python3 -c "
           import os, re
 
@@ -41,11 +49,9 @@ jobs:
               content = f.read()
 
           targets = set()
-          # استخراج مسارات الملفات من ترويسة الباتش
           matches = re.findall(r'^(?:---|\+\+\+|diff --git a/)\s*a?/([^\s\t]+)', content, re.MULTILINE)
           
           for filepath in matches:
-              # استبعاد الملفات الوهمية
               if filepath != 'dev/null' and not filepath.startswith('b/'):
                   targets.add(filepath)
 
@@ -63,7 +69,6 @@ jobs:
           echo "----------------------------------------"
           echo "==> Applying Patch now..."
 
-          # دحش الباتش بعد تجهيز وتوفير كل الملفات والمجلدات
           if git apply --check "$PATCH_FILE" 2>/dev/null; then
             echo "✅ Patch applies cleanly! Applying now..."
             git apply "$PATCH_FILE"
@@ -96,6 +101,4 @@ jobs:
       - name: Build Kernel
         run: |
           echo "==> Starting Kernel Compilation..."
-          # ⚠️ ضع أوامر البناء الخاصة بك هنا، مثال:
-          # make ARCH=arm64 defconfig
-          # make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+          # ضع أوامر البناء الخاصة بك هنا
