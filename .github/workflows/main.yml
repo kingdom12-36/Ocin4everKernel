@@ -2,12 +2,11 @@ name: Patch SuSFS and Build Kernel
 
 on:
   push:
-    branches: [ "mainline", "main", "master" ]
   workflow_dispatch:
 
 env:
   # ⚠️ استبدل باسم ملف الـ defconfig الخاص بك في السورس (مثال: exynos9820_defconfig أو defconfig)
-  DEFCONFIG_NAME: "your_defconfig_name" 
+  DEFCONFIG_NAME: "ksu.config" 
 
 jobs:
   build-kernel:
