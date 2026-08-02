@@ -1,131 +1,147 @@
-name: Kernel Build Workflow
+name: Build Kernel with NoMount Hooks
 
 on:
+  push:
   workflow_dispatch:
-    inputs:
-      model:
-        description: "Model to build (leave empty to build all)"
-        required: false
-        default: "all"
-        type: choice
-        options:
-        - all
-        - d1
-        - d1xks
-        - d2s
-        - d2x
-        - d2xks
+
+env:
+  DEFCONFIG_NAME: "exynos9820_defconfig"
 
 jobs:
-  setup:
+  build-kernel:
     runs-on: ubuntu-latest
-    outputs:
-      should_build_all: ${{ github.event.inputs.model == 'all' }}
+
     steps:
-      - name: Install dependencies
+      - name: Checkout Kernel Source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig
-      - name: Set should_build_all output
-        run: echo "should_build_all=${{ github.event.inputs.model == 'all' }}" >> $GITHUB_OUTPUT
+          sudo apt-get install -y \
+            build-essential bc libncurses5-dev libssl-dev libelf-dev \
+            flex bison ccache git patch python3 wget zip
 
-  build_d1:
-    needs: setup
-    runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.model == 'd1' || needs.setup.outputs.should_build_all == 'true' }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-      - name: Update submodules
+      - name: Create and Execute NoMount Patcher
+        shell: bash
         run: |
-          git submodule update --init --recursive
-          git submodule update --remote
-      - name: Build for d1
-        run: ./workflows.sh -m d1 -k Y -r N
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ExtremeKRNL-Nexus-d1
-          path: build/out/d1/zip
+          echo "==> Creating NoMount Patcher Script..."
+          cat << 'EOF' > patch_nomount.sh
+          #!/bin/bash
+          set -e
 
-  build_d1xks:
-    needs: setup
-    runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.model == 'd1xks' || needs.setup.outputs.should_build_all == 'true' }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-      - name: Update submodules
-        run: |
-          git submodule update --init --recursive
-          git submodule update --remote
-      - name: Build for d1xks
-        run: ./workflows.sh -m d1xks -k Y -r N
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ExtremeKRNL-Nexus-d1xks
-          path: build/out/d1xks/zip
+          mkdir -p fs/ include/linux/
 
-  build_d2s:
-    needs: setup
-    runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.model == 'd2s' || needs.setup.outputs.should_build_all == 'true' }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-          token: ${{ secrets.FCK_SUBMODULES }}
-      - name: Update submodules
-        run: |
-          git submodule sync --recursive
-          git submodule update --init --force --recursive --remote
-      - name: Build for d2s
-        run: ./workflows.sh -m d2s -k Y -r N
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ExtremeKRNL-Nexus-d2s
-          path: build/out/d2s/zip
+          if [ ! -f "fs/nomount.c" ]; then
+              echo "✨ Creating placeholder fs/nomount.c..."
+              cat << 'C_EOF' > fs/nomount.c
+          #include <linux/module.h>
+          #include <linux/kernel.h>
+          #include <linux/path.h>
+          #include <linux/fs.h>
+          #include <linux/stat.h>
 
-  build_d2x:
-    needs: setup
-    runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.model == 'd2x' || needs.setup.outputs.should_build_all == 'true' }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-      - name: Update submodules
-        run: |
-          git submodule update --init --recursive
-          git submodule update --remote
-      - name: Build for d2x
-        run: ./workflows.sh -m d2x -k Y -r N
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ExtremeKRNL-Nexus-d2x
-          path: build/out/d2x/zip
+          char *nomount_handle_dpath(const struct path *path, char *buf, int buflen) { return NULL; }
+          struct filename *nomount_handle_getname(struct filename *name) { return name; }
+          int nomount_handle_permission(struct inode *inode, int mask) { return 0; }
+          bool nomount_spoof_mmap_metadata(struct inode *inode, dev_t *dev, unsigned long *ino) { return false; }
+          int nomount_handle_iterate_dir(struct file *file, struct dir_context *ctx) { return 0; }
+          int nomount_handle_getattr(int ret, const struct path *path, struct kstat *stat) { return ret; }
+          void nomount_spoof_statfs(const struct path *path, struct kstatfs *buf) {}
+          C_EOF
+          fi
 
-  build_d2xks:
-    needs: setup
-    runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.model == 'd2xks' || needs.setup.outputs.should_build_all == 'true' }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-      - name: Update submodules
+          patch_files=(
+              fs/dcache.c
+              fs/Kconfig
+              fs/Makefile
+              fs/namei.c
+              fs/proc/task_mmu.c
+              fs/readdir.c
+              fs/stat.c
+              fs/statfs.c
+          )
+
+          for i in "${patch_files[@]}"; do
+              if [ ! -f "$i" ]; then continue; fi
+              if grep -q "NOMOUNT" "$i"; then
+                  echo "[-] $i already patched."
+                  continue
+              fi
+
+              case $i in
+              fs/dcache.c)
+                  sed -i '/char \*__d_path(const struct path \*path,/i\#ifdef CONFIG_NOMOUNT\nextern char *nomount_handle_dpath(const struct path *path, char *buf, int buflen);\n#endif\n' fs/dcache.c
+                  sed -i '/if (path->dentry->d_op && path->dentry->d_op->d_dname &&/i\#ifdef CONFIG_NOMOUNT\n\tchar *nm_path = nomount_handle_dpath(path, buf, buflen);\n\tif (unlikely(nm_path)) {\n\t\treturn nm_path;\n\t}\n#endif\n' fs/dcache.c
+                  ;;
+              fs/Kconfig)
+                  sed -i ':a;N;$!ba;s/\(.*\)\nendmenu/\1\nconfig NOMOUNT\n\tbool "NoMount Path Redirection Subsystem"\n\tdefault y\n\thelp\n\t  NoMount allows path redirection without mounting filesystems.\nendmenu/' fs/Kconfig
+                  ;;
+              fs/Makefile)
+                  sed -i '/obj-$(CONFIG_PROC_FS) += proc_namespace.o/i\obj-$(CONFIG_NOMOUNT) += nomount.o' fs/Makefile
+                  ;;
+              fs/namei.c)
+                  sed -i $'/^[[:space:]]*#define EMBEDDED_NAME_MAX/a\\\n#ifdef CONFIG_NOMOUNT\\\nextern struct filename *nomount_handle_getname(struct filename *name);\\\nextern int nomount_handle_permission(struct inode *inode, int mask);\\\n#endif/' fs/namei.c
+                  sed -i $'/audit_getname(result);/i\\\n#ifdef CONFIG_NOMOUNT\\\n\tif (!IS_ERR(result)) {\\\n\t\tresult = nomount_handle_getname(result);\\\n\t}\\\n#endif' fs/namei.c
+                  if grep -q "return __inode_permission2" "fs/namei.c"; then
+                      sed -i '0,/^[[:space:]]*if (unlikely(mask & MAY_WRITE)) {/s/^[[:space:]]*if (unlikely(mask & MAY_WRITE)) {/#ifdef CONFIG_NOMOUNT\n\tint nm_perm = nomount_handle_permission(inode, mask);\n\tif (unlikely(nm_perm < 0)) return nm_perm;\n\tif (unlikely(nm_perm > 0)) return 0;\n#endif\n&/' fs/namei.c
+                  else
+                      sed -i $'/^[[:space:]]*retval = sb_permission(inode->i_sb, inode, mask);/i\\\n#ifdef CONFIG_NOMOUNT\\\n\tint nm_perm = nomount_handle_permission(inode, mask);\n\tif (unlikely(nm_perm < 0)) return nm_perm;\n\tif (unlikely(nm_perm > 0)) return 0;\n#endif' fs/namei.c
+                  fi
+                  ;;
+              fs/proc/task_mmu.c)
+                  sed -i '/show_map_vma(struct seq_file \*m, struct vm_area_struct \*vma, int is_pid)/i\#ifdef CONFIG_NOMOUNT\nextern bool nomount_spoof_mmap_metadata(struct inode *inode, dev_t *dev, unsigned long *ino);\n#endif\n' fs/proc/task_mmu.c
+                  sed -i '/pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;/i\#ifdef CONFIG_NOMOUNT\n\t\tnomount_spoof_mmap_metadata(inode, \&dev, \&ino);\n#endif\n' fs/proc/task_mmu.c
+                  ;;
+              fs/readdir.c)
+                  sed -i '/int iterate_dir(struct file \*file, struct dir_context \*ctx)/i\#ifdef CONFIG_NOMOUNT\nextern int nomount_handle_iterate_dir(struct file *file, struct dir_context *ctx);\n#endif\n' fs/readdir.c
+                  sed -i '/ctx->pos = file->f_pos;/a\#ifdef CONFIG_NOMOUNT\n\t\tres = nomount_handle_iterate_dir(file, ctx);\n#else' fs/readdir.c
+                  sed -i '/file->f_pos = ctx->pos;/i\#endif' fs/readdir.c
+                  ;;
+              fs/stat.c)
+                  if grep -q "@request_mask" "fs/stat.c"; then
+                      sed -i '/int vfs_getattr(const struct path \*path, struct kstat \*stat,/i\#ifdef CONFIG_NOMOUNT\nextern int nomount_handle_getattr(int ret, const struct path *path, struct kstat *stat);\n#endif\n' fs/stat.c
+                      sed -i '/return vfs_getattr_nosec(path, stat, request_mask, query_flags);/i\#ifdef CONFIG_NOMOUNT\n    return nomount_handle_getattr(vfs_getattr_nosec(path, stat, request_mask, query_flags), path, stat);\n#else' fs/stat.c
+                      sed -i '/return vfs_getattr_nosec(path, stat, request_mask, query_flags);/a\#endif' fs/stat.c
+                  else
+                      sed -i '/int vfs_getattr(struct path \*path, struct kstat \*stat)/i\#ifdef CONFIG_NOMOUNT\nextern int nomount_handle_getattr(int ret, const struct path *path, struct kstat *stat);\n#endif\n' fs/stat.c
+                      sed -i '/return vfs_getattr_nosec(path, stat);/i\#ifdef CONFIG_NOMOUNT\n\treturn nomount_handle_getattr(vfs_getattr_nosec(path, stat), path, stat);\n#else' fs/stat.c
+                      sed -i '/return vfs_getattr_nosec(path, stat);/a\#endif' fs/stat.c
+                  fi
+                  ;;
+              fs/statfs.c)
+                  sed -i '/static int flags_by_mnt(int mnt_flags)/i\#ifdef CONFIG_NOMOUNT\nextern void nomount_spoof_statfs(const struct path *path, struct kstatfs *buf);\n#endif\n' fs/statfs.c
+                  sed -i '/buf->f_flags = calculate_f_flags(path->mnt);/a\#ifdef CONFIG_NOMOUNT\n\tnomount_spoof_statfs(path, buf);\n#endif\n' fs/statfs.c
+                  ;;
+              esac
+          done
+          echo "✅ All NoMount Hooks Applied!"
+          EOF
+
+          chmod +x patch_nomount.sh
+          ./patch_nomount.sh
+
+      - name: Append CONFIG_NOMOUNT to DEFCONFIG
+        shell: bash
         run: |
-          git submodule update --init --recursive
-          git submodule update --remote
-      - name: Build for d2xks
-        run: ./workflows.sh -m d2xks -k Y -r N
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ExtremeKRNL-Nexus-d2xks
-          path: build/out/d2xks/zip
+          DEFCONFIG_PATH=$(find arch/arm64/configs -name "${{ env.DEFCONFIG_NAME }}" | head -n 1)
+
+          if [ -z "$DEFCONFIG_PATH" ]; then
+            DEFCONFIG_PATH=$(find arch/ -name "*defconfig" | head -n 1)
+          fi
+
+          echo "==> Injecting CONFIG_NOMOUNT=y into $DEFCONFIG_PATH"
+          echo "# NoMount Configuration" >> "$DEFCONFIG_PATH"
+          echo "CONFIG_NOMOUNT=y" >> "$DEFCONFIG_PATH"
+
+      - name: Verify Modifications
+        run: |
+          git status --short
+
+      - name: Compile Kernel
+        run: |
+          echo "==> Executing make defconfig and compilation..."
+          # make ARCH=arm64 ${{ env.DEFCONFIG_NAME }}
+          # make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-android-
