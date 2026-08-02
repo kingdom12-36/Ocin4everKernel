@@ -16,23 +16,64 @@ jobs:
       - name: Install Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential bc libncurses5-dev libssl-dev libelf-dev flex bison ccache git
+          sudo apt-get install -y build-essential bc libncurses5-dev libssl-dev libelf-dev flex bison ccache git python3
 
-      - name: Apply SUSFS Patch
+      - name: Smart Auto-Create Missing Files & Apply SUSFS Patch
         run: |
-          # ⚠️ تأكد من مسار ملف الباتش داخل مستودعك
-          PATCH_FILE="Patches/Patch/susfs_patch_to_4.14.patch"
+          echo "==> Searching for patch file..."
+          PATCH_FILE=$(find . -type f -name "susfs_patch_to_4.14.patch" | head -n 1)
 
-          echo "==> Testing patch application..."
+          if [ -z "$PATCH_FILE" ]; then
+            echo "❌ ERROR: Could not find 'susfs_patch_to_4.14.patch' in repository!"
+            exit 1
+          fi
+
+          echo "✅ Found patch at: $PATCH_FILE"
+          echo "----------------------------------------"
+          echo "==> Auto-creating any missing files/directories from patch..."
+
+          # سكربت بايثون يقرأ مسارات الملفات من الباتش وينشئ أي ملف ناقص تلقائياً
+          python3 -c "
+          import os, re
+
+          patch_path = '$PATCH_FILE'
+          with open(patch_path, 'r', encoding='utf-8', errors='ignore') as f:
+              content = f.read()
+
+          targets = set()
+          # استخراج مسارات الملفات من ترويسة الباتش
+          matches = re.findall(r'^(?:---|\+\+\+|diff --git a/)\s*a?/([^\s\t]+)', content, re.MULTILINE)
+          
+          for filepath in matches:
+              # استبعاد الملفات الوهمية
+              if filepath != 'dev/null' and not filepath.startswith('b/'):
+                  targets.add(filepath)
+
+          print('🔍 Referenced files in patch:')
+          for t in sorted(targets):
+              print(f'   - {t}')
+              dirname = os.path.dirname(t)
+              if dirname and not os.path.exists(dirname):
+                  os.makedirs(dirname, exist_ok=True)
+              if not os.path.exists(t):
+                  print(f'   ✨ File missing! Auto-creating blank file: {t}')
+                  open(t, 'a').close()
+          "
+
+          echo "----------------------------------------"
+          echo "==> Applying Patch now..."
+
+          # دحش الباتش بعد تجهيز وتوفير كل الملفات والمجلدات
           if git apply --check "$PATCH_FILE" 2>/dev/null; then
             echo "✅ Patch applies cleanly! Applying now..."
             git apply "$PATCH_FILE"
           else
-            echo "⚠️ Clean apply failed! Trying reject mode..."
+            echo "⚠️ Clean apply failed or had shifts! Trying reject mode..."
             git apply --reject "$PATCH_FILE" || true
             
             REJ_FILES=$(find . -name "*.rej")
             if [ -n "$REJ_FILES" ]; then
+              echo "----------------------------------------"
               echo "❌ Conflicts found in the following files:"
               echo "$REJ_FILES"
               for f in $REJ_FILES; do
@@ -41,23 +82,20 @@ jobs:
                 echo "========================================"
                 cat "$f"
               done
-              echo "----------------------------------------"
-              echo "❌ Patch failed due to conflicts above."
               exit 1
             else
-              echo "✅ Patch applied with minor line shifts!"
+              echo "✅ Applied patch successfully!"
             fi
           fi
 
-      - name: Verify Applied Files
+      - name: Verify Modified Files
         run: |
-          echo "==> Modified files after patch:"
+          echo "==> Modified & Created files list:"
           git status --short
 
       - name: Build Kernel
         run: |
           echo "==> Starting Kernel Compilation..."
-          # ضِع هنا أوامر البناء الخاصة بك، مثل:
+          # ⚠️ ضع أوامر البناء الخاصة بك هنا، مثال:
           # make ARCH=arm64 defconfig
           # make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
-
