@@ -7,6 +7,10 @@ on:
 env:
   DEFCONFIG_NAME: "exynos9820_defconfig"
 
+# ⚠️ هذه الصلاحيات ضرورية جداً للسماح للـ GitHub Token بدفع التعديلات للريبو
+permissions:
+  contents: write
+
 jobs:
   build-kernel:
     runs-on: ubuntu-latest
@@ -16,6 +20,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          # استخدام الـ Token الافتراضي المدمج مع الصلاحيات
+          token: ${{ secrets.GITHUB_TOKEN }} 
 
       - name: Install Build Dependencies
         run: |
@@ -139,6 +145,25 @@ jobs:
       - name: Verify Modifications
         run: |
           git status --short
+
+      # 🚀 هذه الخطوة الجديدة اللي رح تمسك التعديلات وترفعها على الريبو تبعك
+      - name: Commit and Push Modifications
+        run: |
+          echo "==> Configuring Git identity..."
+          git config --global user.name "link2mem"
+          git config --global user.email "were.aksle@gmail.com"
+          
+          echo "==> Committing NoMount changes..."
+          git add .
+          
+          # فحص إذا كان في تعديلات فعلية لحفظها حتى ما يعطي إيرور
+          if git diff-index --quiet HEAD --; then
+            echo "[-] No changes to commit. Everything is up to date."
+          else
+            git commit -m "chore: Apply NoMount kernel hooks and defconfig patch"
+            git push origin HEAD:${GITHUB_REF}
+            echo "✅ All modifications pushed to the repository successfully!"
+          fi
 
       - name: Compile Kernel
         run: |
