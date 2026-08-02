@@ -1,0 +1,63 @@
+name: Apply SUSFS Patch and Build Kernel
+
+on:
+  push:
+    branches: [ "mainline", "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  patch-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential bc libncurses5-dev libssl-dev libelf-dev flex bison ccache git
+
+      - name: Apply SUSFS Patch
+        run: |
+          # ⚠️ تأكد من مسار ملف الباتش داخل مستودعك
+          PATCH_FILE="Patches/Patch/susfs_patch_to_4.14.patch"
+
+          echo "==> Testing patch application..."
+          if git apply --check "$PATCH_FILE" 2>/dev/null; then
+            echo "✅ Patch applies cleanly! Applying now..."
+            git apply "$PATCH_FILE"
+          else
+            echo "⚠️ Clean apply failed! Trying reject mode..."
+            git apply --reject "$PATCH_FILE" || true
+            
+            REJ_FILES=$(find . -name "*.rej")
+            if [ -n "$REJ_FILES" ]; then
+              echo "❌ Conflicts found in the following files:"
+              echo "$REJ_FILES"
+              for f in $REJ_FILES; do
+                echo "========================================"
+                echo "=== Content of $f ==="
+                echo "========================================"
+                cat "$f"
+              done
+              echo "----------------------------------------"
+              echo "❌ Patch failed due to conflicts above."
+              exit 1
+            else
+              echo "✅ Patch applied with minor line shifts!"
+            fi
+          fi
+
+      - name: Verify Applied Files
+        run: |
+          echo "==> Modified files after patch:"
+          git status --short
+
+      - name: Build Kernel
+        run: |
+          echo "==> Starting Kernel Compilation..."
+          # ضِع هنا أوامر البناء الخاصة بك، مثل:
+          # make ARCH=arm64 defconfig
+          # make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+
