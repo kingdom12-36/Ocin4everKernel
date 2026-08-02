@@ -21,7 +21,7 @@ jobs:
         with:
           submodules: recursive
           # استخدام الـ Token الافتراضي المدمج مع الصلاحيات
-          token: ${{ secrets.GITHUB_TOKEN }} 
+          token: ${{ secrets.GITHsecrets.FCK_SUBMODULES }} 
 
       - name: Install Build Dependencies
         run: |
