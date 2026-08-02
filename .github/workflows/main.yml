@@ -2,7 +2,6 @@ name: Build Kernel with NoMount Hooks
 
 on:
   push:
-    
   workflow_dispatch:
 
 env:
@@ -14,26 +13,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. تنظيف مساحة القرص لتجنب خطأ No space left on device
-      - name: Free Disk Space
-        run: |
-          echo "==> Freeing up space on runner..."
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /opt/hostedtoolcache/CodeQL
-          sudo docker image prune --all --force
-          sudo apt-get clean
-          echo "==> Available space after cleanup:"
-          df -h /
-
-      # 2. سحب السورس كود الخاص بالـ Kernel
+      # 1. سحب السورس كود الخاص بالـ Kernel
       - name: Checkout Kernel Source
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      # 3. تثبيت حزم وتدابير التجميع
+      # 2. تثبيت حزم وتدابير التجميع
       - name: Install Build Dependencies
         run: |
           sudo apt-get update
@@ -41,7 +27,7 @@ jobs:
             build-essential bc libncurses5-dev libssl-dev libelf-dev \
             flex bison ccache git patch python3 wget zip
 
-      # 4. إنشآء وتشغيل سكربت الترقيع وحقن الـ Hooks
+      # 3. إنشاء وتشغيل سكربت الترقيع وحقن الـ Hooks
       - name: Create and Execute NoMount Patcher
         shell: bash
         run: |
@@ -83,7 +69,7 @@ jobs:
           )
 
           for i in "${patch_files[@]}"; do
-              if [ ! -f "$i" ]; me continue; fi
+              if [ ! -f "$i" ]; then then continue; fi
               if grep -q "NOMOUNT" "$i"; then
                   echo "[-] $i already patched."
                   continue
@@ -141,7 +127,7 @@ jobs:
           chmod +x patch_nomount.sh
           ./patch_nomount.sh
 
-      # 5. حقن خيار CONFIG_NOMOUNT=y في ملف defconfig
+      # 4. حقن خيار CONFIG_NOMOUNT=y في ملف defconfig
       - name: Append CONFIG_NOMOUNT to DEFCONFIG
         shell: bash
         run: |
@@ -155,15 +141,14 @@ jobs:
           echo "# NoMount Configuration" >> "$DEFCONFIG_PATH"
           echo "CONFIG_NOMOUNT=y" >> "$DEFCONFIG_PATH"
 
-      # 6. التأكد من حالة الملفات المعدلة
+      # 5. التأكد من حالة الملفات المعدلة
       - name: Verify Modifications
         run: |
           git status --short
 
-      # 7. التجميع (أضف أوامرك الخاصة هنا)
+      # 6. التجميع
       - name: Compile Kernel
         run: |
           echo "==> Executing make defconfig and compilation..."
           # make ARCH=arm64 ${{ env.DEFCONFIG_NAME }}
           # make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-android-
-
