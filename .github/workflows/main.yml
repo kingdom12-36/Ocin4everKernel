@@ -1,0 +1,36 @@
+name: Auto Merge Kernel Changes
+
+on:
+  workflow_dispatch:
+
+jobs:
+  merge-kernel:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Base Repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'kingdom12-36/Ocin4everKernel'
+          ref: 'Patient'
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git User
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Add and Fetch Head Repository
+        run: |
+          git remote add upstream https://github.com/ExtremeXT/M62-backport.git
+          git fetch upstream main
+
+      - name: Force Merge Changes
+        run: |
+          git merge upstream/main --allow-unrelated-histories -X theirs -m "Auto-merge update"
+
+      - name: Push Changes Back to Base
+        run: |
+          git push origin Patient
+
