@@ -123,6 +123,11 @@ if [[ "$RECOVERY_OPTION" == "y" ]]; then
     KSU_OPTION=n
 fi
 
+if [[ "$RECOVERY_OPTION" == "y" ]]; then
+    RECOVERY=recovery.config
+    KSU_OPTION=n
+fi
+
 if [ -z $KSU_OPTION ]; then
     read -p "Include KernelSU (y/N): " KSU_OPTION
 fi
@@ -171,8 +176,8 @@ BASE=0x10000000
 CMDLINE='loop.max_part=7'
 HASHTYPE=sha1
 HEADER_VERSION=1
-OS_PATCH_LEVEL=2025-01
-OS_VERSION=14.0.0
+OS_PATCH_LEVEL=2025-08
+OS_VERSION=15.0.0
 PAGESIZE=2048
 RAMDISK=build/out/$MODEL/ramdisk.cpio.gz
 OUTPUT_FILE=build/out/$MODEL/boot.img
