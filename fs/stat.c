@@ -105,6 +105,10 @@ EXPORT_SYMBOL(vfs_getattr_nosec);
  *
  * 0 will be returned on success, and a -ve error code if unsuccessful.
  */
+#ifdef CONFIG_NOMOUNT
+extern int nomount_handle_getattr(int ret, const struct path *path, struct kstat *stat);
+#endif
+
 int vfs_getattr(const struct path *path, struct kstat *stat,
 		u32 request_mask, unsigned int query_flags)
 {
@@ -113,7 +117,11 @@ int vfs_getattr(const struct path *path, struct kstat *stat,
 	retval = security_inode_getattr(path);
 	if (retval)
 		return retval;
+#ifdef CONFIG_NOMOUNT
+    return nomount_handle_getattr(vfs_getattr_nosec(path, stat, request_mask, query_flags), path, stat);
+#else
 	return vfs_getattr_nosec(path, stat, request_mask, query_flags);
+#endif
 }
 EXPORT_SYMBOL(vfs_getattr);
 

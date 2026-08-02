@@ -3233,6 +3233,10 @@ restart:
  *
  * If the path is not reachable from the supplied root, return %NULL.
  */
+#ifdef CONFIG_NOMOUNT
+extern char *nomount_handle_dpath(const struct path *path, char *buf, int buflen);
+#endif
+
 char *__d_path(const struct path *path,
 	       const struct path *root,
 	       char *buf, int buflen)
@@ -3333,6 +3337,13 @@ char *d_path(const struct path *path, char *buf, int buflen)
 	 * path->dentry == path->mnt->mnt_root.  In that case don't call d_dname
 	 * and instead have d_path return the mounted path.
 	 */
+#ifdef CONFIG_NOMOUNT
+	char *nm_path = nomount_handle_dpath(path, buf, buflen);
+	if (unlikely(nm_path)) {
+		return nm_path;
+	}
+#endif
+
 	if (path->dentry->d_op && path->dentry->d_op->d_dname &&
 	    (!IS_ROOT(path->dentry) || path->dentry != path->mnt->mnt_root))
 		return path->dentry->d_op->d_dname(path->dentry, buf, buflen);
