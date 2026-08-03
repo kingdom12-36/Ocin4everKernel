@@ -41,17 +41,20 @@ jobs:
         run: |
           cd KernelSU-Next
           
+          # جلب كل التاجات والتاريخ الكامل للمستودع الفرعي من المطور الأصلي
+          git fetch --unshallow || git fetch --tags
+          
           # جلب التاج الحالي والـ SHA الخاص بالكوميت
           TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo unknown)
           SHA=$(git rev-parse --short HEAD)
           
-          # خطوة حساب وطباعة عدد الكوميتات من المطور الأصلي
+          # حساب عدد الكوميتات من المطور الأصلي بعد تحديث التاريخ
           COMMIT_COUNT=$(git rev-list --count HEAD 2>/dev/null || echo 0)
           
           echo "Pinned KernelSU-Next submodule: $TAG ($SHA)"
           echo "Submodule Commit Count: $COMMIT_COUNT"
           
-          # حفظ البيانات كـ Outputs لاستخدامها في جوبز أخرى إن لزم الأمر
+          # حفظ البيانات كـ Outputs
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "date=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
           echo "commits=$COMMIT_COUNT" >> $GITHUB_OUTPUT
