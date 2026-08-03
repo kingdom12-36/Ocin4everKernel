@@ -1,0 +1,240 @@
+name: Kernel Debug Tools (addr2line / faddr2line)
+
+on:
+  workflow_dispatch:
+    inputs:
+      vmlinux_url:
+        description: 'Direct download URL to vmlinux (optional — enables exact file:line lookup)'
+        required: false
+        default: ''
+      kmsg_path:
+        description: 'Path to last_kmsg file in the repo'
+        required: false
+        default: 'last_kmsg'
+      branch:
+        description: 'Branch containing last_kmsg'
+        required: false
+        default: 'Patient'
+      extra_addresses:
+        description: 'Extra hex addresses to decode (space-separated, e.g. ffffff80082219dc ffffff800821b524)'
+        required: false
+        default: ''
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || 'Patient' }}
+
+      # ── Install cross-compile toolchain ────────────────────────────────
+      - name: Install aarch64 binutils & tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            binutils-aarch64-linux-gnu \
+            gcc-aarch64-linux-gnu \
+            file \
+            xxd
+          echo "✅ aarch64-linux-gnu toolchain installed"
+          aarch64-linux-gnu-addr2line --version
+          aarch64-linux-gnu-nm --version | head -1
+          aarch64-linux-gnu-objdump --version | head -1
+
+      # ── Download vmlinux if provided ───────────────────────────────────
+      - name: Download vmlinux
+        if: ${{ github.event.inputs.vmlinux_url != '' }}
+        run: |
+          echo "⬇️  Downloading vmlinux from ${{ github.event.inputs.vmlinux_url }} ..."
+          curl -L -o vmlinux "${{ github.event.inputs.vmlinux_url }}"
+          file vmlinux
+          ls -lh vmlinux
+
+      # ── Extract addresses from last_kmsg ───────────────────────────────
+      - name: Extract addresses from last_kmsg
+        id: extract
+        run: |
+          FILE="${{ github.event.inputs.kmsg_path || 'last_kmsg' }}"
+          OUT="addresses.txt"
+
+          if [ -f "$FILE" ]; then
+            # Pull unique addresses from call trace lines
+            grep -oP '\[<([0-9a-f]+)\>]' "$FILE" | grep -oP '[0-9a-f]+' | sort -u > hex_addrs.txt
+            # Pull function+offset lines (for faddr2line)
+            grep -oP '\S+\+0x[0-9a-f]+/0x[0-9a-f]+' "$FILE" | sort -u > faddrs.txt
+            echo "Found $(wc -l < hex_addrs.txt) unique addresses"
+            echo "Found $(wc -l < faddrs.txt) unique func+offset pairs"
+          else
+            touch hex_addrs.txt faddrs.txt
+            echo "⚠️  $FILE not found, will only process extra_addresses input"
+          fi
+
+          # Append any extra addresses from input
+          EXTRA="${{ github.event.inputs.extra_addresses }}"
+          if [ -n "$EXTRA" ]; then
+            for A in $EXTRA; do
+              echo "$A" >> hex_addrs.txt
+            done
+            sort -u hex_addrs.txt -o hex_addrs.txt
+          fi
+
+          cat hex_addrs.txt
+
+      # ── addr2line decode (requires vmlinux) ────────────────────────────
+      - name: Decode addresses with addr2line
+        if: ${{ github.event.inputs.vmlinux_url != '' }}
+        run: |
+          echo "## addr2line Results" > addr2line_results.txt
+          echo "" >> addr2line_results.txt
+
+          while IFS= read -r ADDR; do
+            [ -z "$ADDR" ] && continue
+            RESULT=$(aarch64-linux-gnu-addr2line -e vmlinux -f -C -p "0x$ADDR" 2>/dev/null || echo "?? (could not decode)")
+            echo "0x$ADDR → $RESULT" >> addr2line_results.txt
+          done < hex_addrs.txt
+
+          cat addr2line_results.txt
+
+      # ── faddr2line decode (requires vmlinux + kernel source) ──────────
+      - name: Decode with faddr2line
+        if: ${{ github.event.inputs.vmlinux_url != '' }}
+        run: |
+          echo "## faddr2line Results" > faddr2line_results.txt
+          echo "" >> faddr2line_results.txt
+
+          if [ ! -f scripts/faddr2line ]; then
+            echo "⚠️  scripts/faddr2line not found in this repo (needs full kernel source)" >> faddr2line_results.txt
+          else
+            chmod +x scripts/faddr2line
+            while IFS= read -r FADDR; do
+              [ -z "$FADDR" ] && continue
+              echo "--- $FADDR ---" >> faddr2line_results.txt
+              bash scripts/faddr2line vmlinux "$FADDR" 2>&1 >> faddr2line_results.txt || true
+              echo "" >> faddr2line_results.txt
+            done < faddrs.txt
+          fi
+
+          cat faddr2line_results.txt
+
+      # ── nm symbol lookup ───────────────────────────────────────────────
+      - name: Symbol lookup with nm
+        if: ${{ github.event.inputs.vmlinux_url != '' }}
+        run: |
+          echo "## Symbol Map (nm lookup)" > nm_results.txt
+          while IFS= read -r ADDR; do
+            [ -z "$ADDR" ] && continue
+            SYM=$(aarch64-linux-gnu-nm vmlinux 2>/dev/null | grep -i "$ADDR" | head -3 || true)
+            if [ -n "$SYM" ]; then
+              echo "0x$ADDR → $SYM" >> nm_results.txt
+            fi
+          done < hex_addrs.txt
+          cat nm_results.txt || true
+
+      # ── Generate searchable debug index ───────────────────────────────
+      - name: Generate debug index file
+        run: |
+          FILE="${{ github.event.inputs.kmsg_path || 'last_kmsg' }}"
+          OUT="kernel_debug_index.md"
+
+          echo "# 🛠️ Kernel Debug Index" > $OUT
+          echo "" >> $OUT
+          echo "**Generated:** $(date -u '+%Y-%m-%d %H:%M UTC')  " >> $OUT
+          echo "**Kernel:** $(grep -m1 'Comm: init Tainted' "$FILE" 2>/dev/null | grep -oP '4\.\S+' || echo 'unknown')  " >> $OUT
+          echo "**Device:** $(grep -m1 'Hardware name' "$FILE" 2>/dev/null | sed 's/.*Hardware name: //' | sed 's/.*\] //' || echo 'unknown')" >> $OUT
+          echo "" >> $OUT
+          echo "---" >> $OUT
+          echo "" >> $OUT
+
+          # ── Address table ─────────────────────────────────────────────
+          echo "## 📍 Address → Function Table" >> $OUT
+          echo "" >> $OUT
+          echo "| Address | Function | Offset | Total Size |" >> $OUT
+          echo "|---------|----------|--------|------------|" >> $OUT
+
+          if [ -f "$FILE" ]; then
+            grep -oP '\[<[0-9a-f]+>\] \S+' "$FILE" | sort -u | \
+            while read -r ENTRY; do
+              ADDR=$(echo "$ENTRY" | grep -oP '[0-9a-f]{10,}')
+              FUNC=$(echo "$ENTRY" | grep -oP '> \]\s*\K\S+')
+              FUNCNAME=$(echo "$FUNC" | grep -oP '^\S+(?=\+)')
+              OFFSET=$(echo "$FUNC" | grep -oP '\+\K0x[0-9a-f]+(?=/)')
+              SIZE=$(echo "$FUNC" | grep -oP '/\K0x[0-9a-f]+')
+              echo "| \`$ADDR\` | \`$FUNCNAME\` | \`$OFFSET\` | \`$SIZE\` |"
+            done >> $OUT
+          fi
+          echo "" >> $OUT
+
+          # ── addr2line results (if vmlinux was provided) ───────────────
+          if [ -f addr2line_results.txt ]; then
+            echo "## 🎯 Exact File:Line (addr2line)" >> $OUT
+            echo "\`\`\`" >> $OUT
+            cat addr2line_results.txt >> $OUT
+            echo "\`\`\`" >> $OUT
+            echo "" >> $OUT
+          fi
+
+          # ── faddr2line results ────────────────────────────────────────
+          if [ -f faddr2line_results.txt ]; then
+            echo "## 🎯 Exact File:Line (faddr2line)" >> $OUT
+            echo "\`\`\`" >> $OUT
+            cat faddr2line_results.txt >> $OUT
+            echo "\`\`\`" >> $OUT
+            echo "" >> $OUT
+          fi
+
+          # ── Quick reference commands ──────────────────────────────────
+          echo "## 🔧 Quick Reference Commands" >> $OUT
+          echo "" >> $OUT
+          echo "### Setup toolchain (Ubuntu/Debian)" >> $OUT
+          echo "\`\`\`bash" >> $OUT
+          echo "sudo apt install binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu" >> $OUT
+          echo "\`\`\`" >> $OUT
+          echo "" >> $OUT
+          echo "### Decode a single address" >> $OUT
+          echo "\`\`\`bash" >> $OUT
+          echo "aarch64-linux-gnu-addr2line -e vmlinux -f -C -p 0x<ADDRESS>" >> $OUT
+          echo "\`\`\`" >> $OUT
+          echo "" >> $OUT
+          echo "### Decode function+offset (most accurate)" >> $OUT
+          echo "\`\`\`bash" >> $OUT
+          echo "bash scripts/faddr2line vmlinux <func>+0x<offset>/0x<size>" >> $OUT
+          echo "# example:" >> $OUT
+          echo "bash scripts/faddr2line vmlinux do_exit+0xa8c/0xce0" >> $OUT
+          echo "\`\`\`" >> $OUT
+          echo "" >> $OUT
+          echo "### Find panic source in code" >> $OUT
+          echo "\`\`\`bash" >> $OUT
+          echo 'grep -rn "Attempted to kill init" kernel/' >> $OUT
+          echo 'grep -n "is_global_init\|panic.*exitcode" kernel/exit.c' >> $OUT
+          echo "\`\`\`" >> $OUT
+          echo "" >> $OUT
+          echo "### Disassemble a function" >> $OUT
+          echo "\`\`\`bash" >> $OUT
+          echo "aarch64-linux-gnu-objdump -d vmlinux | grep -A 200 '<do_exit>'" >> $OUT
+          echo "\`\`\`" >> $OUT
+          echo "" >> $OUT
+          echo "---" >> $OUT
+          echo "_Generated by [kernel-debug-tools workflow](.github/workflows/kernel-debug-tools.yml)_" >> $OUT
+
+          echo "✅ Debug index written to $OUT"
+          cat $OUT
+
+      - name: Upload all debug artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-debug-${{ github.run_number }}
+          path: |
+            kernel_debug_index.md
+            hex_addrs.txt
+            faddrs.txt
+            addr2line_results.txt
+            faddr2line_results.txt
+            nm_results.txt
+          retention-days: 90
+
+      - name: Print summary
+        run: |
+          echo "## 🛠️ Kernel Debug Index" >> $GITHUB_STEP_SUMMARY
+          cat kernel_debug_index.md >> $GITHUB_STEP_SUMMARY
