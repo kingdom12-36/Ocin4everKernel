@@ -26,6 +26,7 @@ jobs:
       should_build_all: ${{ github.event.inputs.model == 'all' }}
       ksu_tag: ${{ steps.ksu_version.outputs.tag }}
       build_date: ${{ steps.ksu_version.outputs.date }}
+      ksu_commits: ${{ steps.ksu_version.outputs.commits }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -69,6 +70,9 @@ jobs:
         with:
           submodules: 'recursive'
       - name: Build for d1
+        env:
+          KSU_NEXT_VERSION: ${{ needs.setup.outputs.ksu_commits }}
+          KSU_VERSION: ${{ needs.setup.outputs.ksu_commits }}
         run: ./workflows.sh -m d1 -k Y -r N
       - name: Verify build actually produced a flashable package
         run: |
@@ -90,6 +94,9 @@ jobs:
         with:
           submodules: 'recursive'
       - name: Build for d1xks
+        env:
+          KSU_NEXT_VERSION: ${{ needs.setup.outputs.ksu_commits }}
+          KSU_VERSION: ${{ needs.setup.outputs.ksu_commits }}
         run: ./workflows.sh -m d1xks -k Y -r N
       - name: Verify build actually produced a flashable package
         run: |
@@ -112,6 +119,9 @@ jobs:
           submodules: 'recursive'
           token: ${{ secrets.FCK_SUBMODULES }}
       - name: Build for d2s
+        env:
+          KSU_NEXT_VERSION: ${{ needs.setup.outputs.ksu_commits }}
+          KSU_VERSION: ${{ needs.setup.outputs.ksu_commits }}
         run: ./workflows.sh -m d2s -k Y -r N
       - name: Verify build actually produced a flashable package
         run: |
@@ -133,6 +143,9 @@ jobs:
         with:
           submodules: 'recursive'
       - name: Build for d2x
+        env:
+          KSU_NEXT_VERSION: ${{ needs.setup.outputs.ksu_commits }}
+          KSU_VERSION: ${{ needs.setup.outputs.ksu_commits }}
         run: ./workflows.sh -m d2x -k Y -r N
       - name: Verify build actually produced a flashable package
         run: |
@@ -154,6 +167,9 @@ jobs:
         with:
           submodules: 'recursive'
       - name: Build for d2xks
+        env:
+          KSU_NEXT_VERSION: ${{ needs.setup.outputs.ksu_commits }}
+          KSU_VERSION: ${{ needs.setup.outputs.ksu_commits }}
         run: ./workflows.sh -m d2xks -k Y -r N
       - name: Verify build actually produced a flashable package
         run: |
