@@ -40,11 +40,22 @@ jobs:
         id: ksu_version
         run: |
           cd KernelSU-Next
+          
+          # جلب التاج الحالي والـ SHA الخاص بالكوميت
           TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo unknown)
           SHA=$(git rev-parse --short HEAD)
+          
+          # خطوة حساب وطباعة عدد الكوميتات من المطور الأصلي
+          COMMIT_COUNT=$(git rev-list --count HEAD 2>/dev/null || echo 0)
+          
           echo "Pinned KernelSU-Next submodule: $TAG ($SHA)"
+          echo "Submodule Commit Count: $COMMIT_COUNT"
+          
+          # حفظ البيانات كـ Outputs لاستخدامها في جوبز أخرى إن لزم الأمر
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "date=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
+          echo "commits=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+
 
   build_d1:
     needs: setup
