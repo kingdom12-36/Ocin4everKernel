@@ -78,6 +78,26 @@ jobs:
         run: |
           test -f build/out/d1/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
           ls build/out/d1/*.zip || { echo "no flashable zip found in build/out/d1"; exit 1; }
+      - name: Compress vmlinux for Debugging
+        run: |
+          VMLINUX=$(find build/out/d1 . -maxdepth 6 -name "vmlinux" -not -name "*.o" -type f 2>/dev/null | head -1)
+          if [ -z "$VMLINUX" ]; then
+            VMLINUX=$(find . -maxdepth 10 -name "vmlinux" -not -name "*.o" -type f 2>/dev/null | head -1)
+          fi
+          if [ -n "$VMLINUX" ]; then
+            echo "Found vmlinux at: $VMLINUX"
+            tar -cJvf vmlinux-d1.tar.xz "$VMLINUX"
+            ls -lh vmlinux-d1.tar.xz
+          else
+            echo "vmlinux not found - skipping"
+          fi
+      - name: Upload vmlinux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vmlinux-d1
+          path: vmlinux-d1.tar.xz
+          if-no-files-found: warn
+          retention-days: 7
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -102,6 +122,26 @@ jobs:
         run: |
           test -f build/out/d1xks/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
           ls build/out/d1xks/*.zip || { echo "no flashable zip found in build/out/d1xks"; exit 1; }
+      - name: Compress vmlinux for Debugging
+        run: |
+          VMLINUX=$(find build/out/d1xks . -maxdepth 6 -name "vmlinux" -not -name "*.o" -type f 2>/dev/null | head -1)
+          if [ -z "$VMLINUX" ]; then
+            VMLINUX=$(find . -maxdepth 10 -name "vmlinux" -not -name "*.o" -type f 2>/dev/null | head -1)
+          fi
+          if [ -n "$VMLINUX" ]; then
+            echo "Found vmlinux at: $VMLINUX"
+            tar -cJvf vmlinux-d1xks.tar.xz "$VMLINUX"
+            ls -lh vmlinux-d1xks.tar.xz
+          else
+            echo "vmlinux not found - skipping"
+          fi
+      - name: Upload vmlinux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vmlinux-d1xks
+          path: vmlinux-d1xks.tar.xz
+          if-no-files-found: warn
+          retention-days: 7
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -127,6 +167,26 @@ jobs:
         run: |
           test -f build/out/d2s/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
           ls build/out/d2s/*.zip || { echo "no flashable zip found in build/out/d2s"; exit 1; }
+      - name: Compress vmlinux for Debugging
+        run: |
+          VMLINUX=$(find build/out/d2s . -maxdepth 6 -name "vmlinux" -not -name "*.o" -type f 2>/dev/null | head -1)
+          if [ -z "$VMLINUX" ]; then
+            VMLINUX=$(find . -maxdepth 10 -name "vmlinux" -not -name "*.o" -type f 2>/dev/null | head -1)
+          fi
+          if [ -n "$VMLINUX" ]; then
+            echo "Found vmlinux at: $VMLINUX"
+            tar -cJvf vmlinux-d2s.tar.xz "$VMLINUX"
+            ls -lh vmlinux-d2s.tar.xz
+          else
+            echo "vmlinux not found - skipping"
+          fi
+      - name: Upload vmlinux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vmlinux-d2s
+          path: vmlinux-d2s.tar.xz
+          if-no-files-found: warn
+          retention-days: 7
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -151,6 +211,26 @@ jobs:
         run: |
           test -f build/out/d2x/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
           ls build/out/d2x/*.zip || { echo "no flashable zip found in build/out/d2x"; exit 1; }
+      - name: Compress vmlinux for Debugging
+        run: |
+          VMLINUX=$(find build/out/d2x . -maxdepth 6 -name "vmlinux" -not -name "*.o" -type f 2>/dev/null | head -1)
+          if [ -z "$VMLINUX" ]; then
+            VMLINUX=$(find . -maxdepth 10 -name "vmlinux" -not -name "*.o" -type f 2>/dev/null | head -1)
+          fi
+          if [ -n "$VMLINUX" ]; then
+            echo "Found vmlinux at: $VMLINUX"
+            tar -cJvf vmlinux-d2x.tar.xz "$VMLINUX"
+            ls -lh vmlinux-d2x.tar.xz
+          else
+            echo "vmlinux not found - skipping"
+          fi
+      - name: Upload vmlinux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vmlinux-d2x
+          path: vmlinux-d2x.tar.xz
+          if-no-files-found: warn
+          retention-days: 7
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -175,6 +255,26 @@ jobs:
         run: |
           test -f build/out/d2xks/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
           ls build/out/d2xks/*.zip || { echo "no flashable zip found in build/out/d2xks"; exit 1; }
+      - name: Compress vmlinux for Debugging
+        run: |
+          VMLINUX=$(find build/out/d2xks . -maxdepth 6 -name "vmlinux" -not -name "*.o" -type f 2>/dev/null | head -1)
+          if [ -z "$VMLINUX" ]; then
+            VMLINUX=$(find . -maxdepth 10 -name "vmlinux" -not -name "*.o" -type f 2>/dev/null | head -1)
+          fi
+          if [ -n "$VMLINUX" ]; then
+            echo "Found vmlinux at: $VMLINUX"
+            tar -cJvf vmlinux-d2xks.tar.xz "$VMLINUX"
+            ls -lh vmlinux-d2xks.tar.xz
+          else
+            echo "vmlinux not found - skipping"
+          fi
+      - name: Upload vmlinux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vmlinux-d2xks
+          path: vmlinux-d2xks.tar.xz
+          if-no-files-found: warn
+          retention-days: 7
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
