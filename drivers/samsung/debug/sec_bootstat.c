@@ -372,7 +372,7 @@ static ssize_t store_boot_stat(struct device *dev, struct device_attribute *attr
 	return count;
 }
 
-static DEVICE_ATTR(boot_stat, 0644, NULL, store_boot_stat);
+static DEVICE_ATTR(boot_stat, 0200, NULL, store_boot_stat);
 
 static int __init sec_bootstat_init(void)
 {
