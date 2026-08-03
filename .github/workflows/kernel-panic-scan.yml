@@ -1,128 +1,127 @@
 name: Kernel Panic Scanner
 
-    on:
-    push:
-      branches:
-        - Patient
-    pull_request:
-      branches:
-        - Patient
-    workflow_dispatch:
+on:
+  push:
+    branches:
+      - Patient
+  pull_request:
+    branches:
+      - Patient
+  workflow_dispatch:
 
-    jobs:
-    scan-last-kmsg:
-      runs-on: ubuntu-latest
+jobs:
+  scan-last-kmsg:
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: Checkout kernel repo
-          uses: actions/checkout@v4
-          with:
-            repository: kingdom12-36/Ocin4everKernel
-            ref: Patient
-            token: ${{ secrets.GITHUB_PERSONAL_ACCESS_TOKEN }}
+    steps:
+      - name: Checkout kernel repo
+        uses: actions/checkout@v4
+        with:
+          repository: kingdom12-36/Ocin4everKernel
+          ref: Patient
+          token: ${{ secrets.GITHUB_PERSONAL_ACCESS_TOKEN }}
 
-        - name: Scan last_kmsg for known issues
-          run: |
-            FILE="last_kmsg"
-            OUT="panic-scan-report.txt"
-            ISSUES=0
+      - name: Scan last_kmsg for known issues
+        run: |
+          FILE="last_kmsg"
+          OUT="panic-scan-report.txt"
+          ISSUES=0
 
-            if [ ! -f "$FILE" ]; then
-              echo "::error::$FILE not found"
-              exit 1
+          if [ ! -f "$FILE" ]; then
+            echo "::error::$FILE not found"
+            exit 1
+          fi
+
+          {
+            echo "================================================"
+            echo "  Kernel Issue Scan -- $FILE"
+            echo "  $(date -u)"
+            echo "================================================"
+            echo ""
+          } | tee "$OUT"
+
+          scan_pattern() {
+            local LABEL="$1"
+            local LEVEL="$2"
+            local PATTERN="$3"
+
+            MATCHES=$(grep -in "$PATTERN" "$FILE" || true)
+            if [ -n "$MATCHES" ]; then
+              ISSUES=$((ISSUES + 1))
+              {
+                echo "[$LEVEL] $LABEL"
+                echo "Pattern: \"$PATTERN\""
+                while IFS= read -r LINE; do
+                  LINENUM=$(echo "$LINE" | cut -d: -f1)
+                  CONTENT=$(echo "$LINE" | cut -d: -f2-)
+                  echo "  -> File: $FILE  Line: $LINENUM"
+                  echo "    $CONTENT"
+                done <<< "$MATCHES"
+                echo ""
+              } | tee -a "$OUT"
             fi
+          }
 
-            {
-              echo "================================================"
-              echo "  Kernel Issue Scan -- $FILE"
-              echo "  $(date -u)"
-              echo "================================================"
-              echo ""
-            } | tee "$OUT"
+          # Issue 1: The main panic
+          scan_pattern \
+            "Kernel panic -- init killed (PID 1 exited)" \
+            "PANIC" \
+            "Kernel panic - not syncing: Attempted to kill init"
 
-            scan_pattern() {
-              local LABEL="$1"
-              local LEVEL="$2"
-              local PATTERN="$3"
+          # Issue 2: Root cause -- partitions not found
+          scan_pattern \
+            "Partition mount failure -- UFS/fstab cant find required partitions" \
+            "PANIC ROOT CAUSE" \
+            "partition(s) not found after polling timeout"
 
-              MATCHES=$(grep -in "$PATTERN" "$FILE" || true)
-              if [ -n "$MATCHES" ]; then
-                ISSUES=$((ISSUES + 1))
-                {
-                  echo "[$LEVEL] $LABEL"
-                  echo "Pattern: \"$PATTERN\""
-                  while IFS= read -r LINE; do
-                    LINENUM=$(echo "$LINE" | cut -d: -f1)
-                    CONTENT=$(echo "$LINE" | cut -d: -f2-)
-                    echo "  -> File: $FILE  Line: $LINENUM"
-                    echo "    $CONTENT"
-                  done <<< "$MATCHES"
-                  echo ""
-                } | tee -a "$OUT"
-              fi
-            }
+          scan_pattern \
+            "Init failed to mount required partitions" \
+            "PANIC ROOT CAUSE" \
+            "Failed to mount required partitions early"
 
-            # Issue 1: The main panic
-            scan_pattern \
-              "Kernel panic -- init killed (PID 1 exited)" \
-              "PANIC" \
-              "Kernel panic - not syncing: Attempted to kill init"
+          # Issue 3: sec_bootstat sysfs attribute without show()
+          scan_pattern \
+            "sec_bootstat_init -- sysfs attribute boot_stat has no show() function" \
+            "WARN" \
+            "Attribute boot_stat: read permission without"
 
-            # Issue 2: Root cause -- partitions not found
-            scan_pattern \
-              "Partition mount failure -- UFS/fstab cant find required partitions" \
-              "PANIC ROOT CAUSE" \
-              "partition(s) not found after polling timeout"
+          scan_pattern \
+            "WARN_ON in device_create_file triggered by sec_bootstat_init" \
+            "WARN" \
+            "WARNING.*device_create_file"
 
-            scan_pattern \
-              "Init failed to mount required partitions" \
-              "PANIC ROOT CAUSE" \
-              "Failed to mount required partitions early"
+          # Issue 4: ARM64 boot protocol violation
+          scan_pattern \
+            "ARM64 boot protocol violation -- x1-x3 nonzero, broken bootloader or old kernel" \
+            "WARN" \
+            "x1-x3 nonzero in violation of boot protocol"
 
-            # Issue 3: sec_bootstat sysfs attribute without show()
-            scan_pattern \
-              "sec_bootstat_init -- sysfs attribute boot_stat has no show() function" \
-              "WARN" \
-              "Attribute boot_stat: read permission without"
+          # Samsung sec_debug fault marker
+          scan_pattern \
+            "Samsung sec_debug panic fault marker" \
+            "PANIC" \
+            "sec_debug_set_extra_info_fault = PANIC"
 
-            scan_pattern \
-              "WARN_ON in device_create_file triggered by sec_bootstat_init" \
-              "WARN" \
-              "WARNING.*device_create_file"
-
-            # Issue 4: ARM64 boot protocol violation
-            scan_pattern \
-              "ARM64 boot protocol violation -- x1-x3 nonzero, broken bootloader or old kernel" \
-              "WARN" \
-              "x1-x3 nonzero in violation of boot protocol"
-
-            # Samsung sec_debug fault marker
-            scan_pattern \
-              "Samsung sec_debug panic fault marker" \
-              "PANIC" \
-              "sec_debug_set_extra_info_fault = PANIC"
-
-            # Summary
-            {
-              echo "================================================"
-              if [ "$ISSUES" -eq 0 ]; then
-                echo "  CLEAN -- no known issues found."
-              else
-                echo "  Found $ISSUES issue(s) -- see above."
-              fi
-              echo "================================================"
-            } | tee -a "$OUT"
-
-            # Fail the workflow if a PANIC was found
-            if grep -q "^\[PANIC\]" "$OUT"; then
-              echo "::error::Kernel panic detected -- check the scan report."
-              exit 1
+          # Summary
+          {
+            echo "================================================"
+            if [ "$ISSUES" -eq 0 ]; then
+              echo "  CLEAN -- no known issues found."
+            else
+              echo "  Found $ISSUES issue(s) -- see above."
             fi
+            echo "================================================"
+          } | tee -a "$OUT"
 
-        - name: Upload scan report
-          if: always()
-          uses: actions/upload-artifact@v4
-          with:
-            name: panic-scan-report
-            path: panic-scan-report.txt
-    
+          # Fail the workflow if a PANIC was found
+          if grep -q "^\[PANIC\]" "$OUT"; then
+            echo "::error::Kernel panic detected -- check the scan report."
+            exit 1
+          fi
+
+      - name: Upload scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: panic-scan-report
+          path: panic-scan-report.txt
