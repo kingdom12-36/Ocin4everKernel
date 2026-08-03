@@ -19,7 +19,7 @@ jobs:
         with:
           repository: kingdom12-36/Ocin4everKernel
           ref: Patient
-          token: ${{ secrets.GITHUB_PERSONAL_ACCESS_TOKEN }}
+          token: ${{ secrets.GO }}
 
       - name: Scan last_kmsg for known issues
         run: |
