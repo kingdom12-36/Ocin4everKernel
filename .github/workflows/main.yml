@@ -4,6 +4,10 @@ on:
   push: 
   workflow_dispatch: # Allows you to trigger this workflow manually from the GitHub UI
 
+# 🚀 الحل هنا: إعطاء صلاحية الكتابة للـ Token
+permissions:
+  contents: write
+
 jobs:
   update-ksu:
     runs-on: ubuntu-latest
@@ -55,9 +59,9 @@ jobs:
           
       - name: Commit and push changes
         run: |
-          # Set up git config for the bot to commit
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # إعداد هوية Git لتوثيق الالتزامات (Commits)
+          git config --global user.name "link2mem"
+          git config --global user.email "were.aksle@gmail.com"
           
           # Stage the updated submodule pointers
           git add KernelSU-Next drivers/kernelsu
