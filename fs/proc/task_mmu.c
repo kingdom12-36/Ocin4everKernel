@@ -327,7 +327,7 @@ static int do_maps_open(struct inode *inode, struct file *file,
  * Indicate if the VMA is a stack for the given task; for
  * /proc/PID/maps that is the stack of the main task.
  */
-static int is_stack(struct vm_area_struct *vma)
+Static int is_stack(struct vm_area_struct *vma)
 {
 	/*
 	 * We make no effort to guess what a given thread considers to be
@@ -337,6 +337,10 @@ static int is_stack(struct vm_area_struct *vma)
 	return vma->vm_start <= vma->vm_mm->start_stack &&
 		vma->vm_end >= vma->vm_mm->start_stack;
 }
+
+#ifdef CONFIG_NOMOUNT
+extern bool nomount_spoof_mmap_metadata(struct inode *inode, dev_t *dev, unsigned long *ino);
+#endif
 
 static void show_vma_header_prefix(struct seq_file *m,
 				   unsigned long start, unsigned long end,
@@ -355,12 +359,7 @@ static void show_vma_header_prefix(struct seq_file *m,
 		   MAJOR(dev), MINOR(dev), ino);
 }
 
-static void
-#ifdef CONFIG_NOMOUNT
-extern bool nomount_spoof_mmap_metadata(struct inode *inode, dev_t *dev, unsigned long *ino);
-#endif
-
-show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
+static void show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
 {
 	struct mm_struct *mm = vma->vm_mm;
 	struct file *file = vma->vm_file;
@@ -378,6 +377,8 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
 #ifdef CONFIG_NOMOUNT
 		nomount_spoof_mmap_metadata(inode, &dev, &ino);
 #endif
+
+		
 
 		pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
 	}
