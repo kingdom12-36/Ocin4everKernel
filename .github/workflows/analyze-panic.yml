@@ -1,0 +1,147 @@
+name: Analyze Kernel Panic (last_kmsg)
+
+on:
+  workflow_dispatch:
+    inputs:
+      kmsg_path:
+        description: 'Path to last_kmsg file in the repo'
+        required: false
+        default: 'last_kmsg'
+      branch:
+        description: 'Branch containing last_kmsg'
+        required: false
+        default: 'Patient'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || 'Patient' }}
+
+      - name: Parse last_kmsg and generate report
+        run: |
+          FILE="${{ github.event.inputs.kmsg_path || 'last_kmsg' }}"
+
+          if [ ! -f "$FILE" ]; then
+            echo "❌ File '$FILE' not found."
+            exit 1
+          fi
+
+          REPORT="kernel_panic_report.md"
+          echo "# 🔍 Kernel Panic Analysis Report" > $REPORT
+          echo "" >> $REPORT
+          echo "**File:** \`$FILE\`  " >> $REPORT
+          echo "**Generated:** $(date -u '+%Y-%m-%d %H:%M UTC')" >> $REPORT
+          echo "" >> $REPORT
+
+          # ── Panic reason ─────────────────────────────────────────────
+          echo "## 💥 Panic Reason" >> $REPORT
+          PANIC=$(grep -m1 "Kernel panic" "$FILE" || echo "No panic found")
+          echo "\`\`\`" >> $REPORT
+          echo "$PANIC" >> $REPORT
+          echo "\`\`\`" >> $REPORT
+          echo "" >> $REPORT
+
+          # ── Exit code decode ─────────────────────────────────────────
+          EXITCODE=$(echo "$PANIC" | grep -oP 'exitcode=0x\K[0-9a-fA-F]+' || true)
+          if [ -n "$EXITCODE" ]; then
+            DEC=$((16#$EXITCODE))
+            SIG=$((DEC & 0x7f))
+            echo "## 🔢 Exit Code Decode" >> $REPORT
+            echo "| Field | Value |" >> $REPORT
+            echo "|-------|-------|" >> $REPORT
+            echo "| Raw exitcode | \`0x$EXITCODE\` |" >> $REPORT
+            echo "| Decimal | $DEC |" >> $REPORT
+            echo "| Signal (low 7 bits) | $SIG |" >> $REPORT
+            if [ "$SIG" -eq 127 ]; then
+              echo "| Meaning | **Command not found / exec failed** (signal 127) |" >> $REPORT
+            elif [ "$SIG" -eq 9 ]; then
+              echo "| Meaning | **SIGKILL** |" >> $REPORT
+            elif [ "$SIG" -eq 11 ]; then
+              echo "| Meaning | **SIGSEGV (segfault)** |" >> $REPORT
+            elif [ "$SIG" -eq 6 ]; then
+              echo "| Meaning | **SIGABRT (abort)** |" >> $REPORT
+            else
+              echo "| Meaning | Signal $SIG |" >> $REPORT
+            fi
+            echo "" >> $REPORT
+          fi
+
+          # ── Kernel version & hardware ────────────────────────────────
+          echo "## 🖥️ Device & Kernel Info" >> $REPORT
+          echo "\`\`\`" >> $REPORT
+          grep -m1 "Comm: init Tainted" "$FILE" | sed 's/.*\] //' >> $REPORT || true
+          grep -m1 "Hardware name" "$FILE" | sed 's/.*\] //' >> $REPORT || true
+          echo "\`\`\`" >> $REPORT
+          echo "" >> $REPORT
+
+          # ── Call trace (init process only) ───────────────────────────
+          echo "## 📋 Call Trace (init — PID 1)" >> $REPORT
+          echo "\`\`\`" >> $REPORT
+          grep "init:    1.*\[<" "$FILE" | grep -oP '\[<[0-9a-f]+>\] \S+' | \
+            sed 's/\[<\([0-9a-f]*\)>\] /ADDR:\1  FUNC:/' >> $REPORT || \
+            echo "No init call trace found" >> $REPORT
+          echo "\`\`\`" >> $REPORT
+          echo "" >> $REPORT
+
+          # ── Key addresses for addr2line ───────────────────────────────
+          echo "## 🎯 Addresses for addr2line / faddr2line" >> $REPORT
+          echo "Run these with your \`vmlinux\` to get exact file:line numbers:" >> $REPORT
+          echo "" >> $REPORT
+          echo "\`\`\`bash" >> $REPORT
+          echo "# Install cross toolchain first:" >> $REPORT
+          echo "# sudo apt install gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu" >> $REPORT
+          echo "" >> $REPORT
+          grep "init:    1.*\[<" "$FILE" | grep -oP '\[<([0-9a-f]+)\>]' | \
+            grep -oP '[0-9a-f]+' | sort -u | while read ADDR; do
+              echo "aarch64-linux-gnu-addr2line -e vmlinux -f $ADDR"
+            done >> $REPORT || true
+          echo "" >> $REPORT
+          echo "# OR use kernel's built-in script (more accurate):" >> $REPORT
+          grep "init:    1.*\[<" "$FILE" | grep -oP '\S+\+0x[0-9a-f]+/0x[0-9a-f]+' | \
+            sort -u | while read FADDR; do
+              echo "scripts/faddr2line vmlinux $FADDR"
+            done >> $REPORT || true
+          echo "\`\`\`" >> $REPORT
+          echo "" >> $REPORT
+
+          # ── Warnings & errors summary ────────────────────────────────
+          echo "## ⚠️ Warnings & Errors (chronological)" >> $REPORT
+          echo "\`\`\`" >> $REPORT
+          grep -E "^<[023]>" "$FILE" | \
+            grep -v "sec_debug_set_essinfo\|sec_debug_init_extra" | \
+            head -40 | sed 's/.*\] //' >> $REPORT || true
+          echo "\`\`\`" >> $REPORT
+          echo "" >> $REPORT
+
+          # ── Boot timestamps ───────────────────────────────────────────
+          echo "## ⏱️ Boot Event Timeline" >> $REPORT
+          echo "| Time (s) | Event |" >> $REPORT
+          echo "|----------|-------|" >> $REPORT
+          grep -E "Kernel panic|Starting kernel|BOOTING TIME|sec_debug_set_extra_info_fault" \
+            "$FILE" | sed 's/.*\[\s*//' | sed 's/\].*//' | head -10 | while read T; do
+            LINE=$(grep -m1 "$T" "$FILE" | sed 's/.*\] //')
+            echo "| $T | $LINE |"
+          done >> $REPORT || true
+          echo "" >> $REPORT
+
+          echo "---" >> $REPORT
+          echo "_Report generated by [analyze-panic workflow](.github/workflows/analyze-panic.yml)_" >> $REPORT
+
+          echo "✅ Report written to $REPORT"
+          cat $REPORT
+
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-panic-report
+          path: kernel_panic_report.md
+          retention-days: 30
+
+      - name: Print summary
+        run: |
+          echo "## Kernel Panic Report" >> $GITHUB_STEP_SUMMARY
+          cat kernel_panic_report.md >> $GITHUB_STEP_SUMMARY
