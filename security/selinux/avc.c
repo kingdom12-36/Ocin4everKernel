@@ -33,11 +33,12 @@
 #include "avc.h"
 #include "avc_ss.h"
 #include "classmap.h"
+#include <linux/spoof_helper.h>
 
 // [ SEC_SELINUX_PORTING_COMMON
 #ifdef SEC_SELINUX_DEBUG
 #include <linux/signal.h>
-#include <linux/spoof_helper.h>
+
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
 
