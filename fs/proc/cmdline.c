@@ -107,6 +107,12 @@ static int __init proc_cmdline_init(void)
 	process_flag(FLAG_REPLACE, "androidboot.verifiedbootstate=", "green"); // Play Integrity API / SafetyNet
 	process_flag(FLAG_REPLACE, "androidboot.warranty_bit=", "0"); // Bootloader status and Knox
 	process_flag(FLAG_REPLACE, "androidboot.fmp_config=", "1"); // Samsung Knox FMP / FIPS
+	// Spoofing P7-ext: additional SafetyNet / Play Integrity fixes
+	process_flag(FLAG_REPLACE, "androidboot.flash.locked=", "1"); // bootloader locked
+	process_flag(FLAG_DELETE,  "androidboot.veritymode=", NULL); // hide verity mode
+	process_flag(FLAG_DELETE,  "androidboot.debug_level=", NULL); // hide debug level
+	process_flag(FLAG_DELETE,  "androidboot.selinux=", NULL); // hide selinux param
+	process_flag(FLAG_DELETE,  "ksu", NULL); // hide ksu cmdline param
 #endif
 
 	proc_create("cmdline", 0, NULL, &cmdline_proc_fops);
