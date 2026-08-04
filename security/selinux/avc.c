@@ -37,7 +37,7 @@
 // [ SEC_SELINUX_PORTING_COMMON
 #ifdef SEC_SELINUX_DEBUG
 #include <linux/signal.h>
-#include "../../fs/proc/spoof_helper.h"
+#include <linux/spoof_helper.h>
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
 
