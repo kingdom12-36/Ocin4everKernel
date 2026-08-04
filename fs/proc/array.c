@@ -95,6 +95,7 @@
 #include <asm/pgtable.h>
 #include <asm/processor.h>
 #include "internal.h"
+#include "spoof_helper.h"
 
 static inline void task_name(struct seq_file *m, struct task_struct *p)
 {
@@ -194,7 +195,11 @@ static inline void task_state(struct seq_file *m, struct pid_namespace *ns,
 	seq_put_decimal_ull(m, "\nNgid:\t", ngid);
 	seq_put_decimal_ull(m, "\nPid:\t", pid_nr_ns(pid, ns));
 	seq_put_decimal_ull(m, "\nPPid:\t", ppid);
-	seq_put_decimal_ull(m, "\nTracerPid:\t", tpid);
+	/* Spoofing P4: hide tracer PID from root detectors */
+	{
+		pid_t __tp = spoof_is_whitelisted() ? tpid : 0;
+		seq_put_decimal_ull(m, "\nTracerPid:\t", __tp);
+	}
 	seq_put_decimal_ull(m, "\nUid:\t", from_kuid_munged(user_ns, cred->uid));
 	seq_put_decimal_ull(m, "\t", from_kuid_munged(user_ns, cred->euid));
 	seq_put_decimal_ull(m, "\t", from_kuid_munged(user_ns, cred->suid));
