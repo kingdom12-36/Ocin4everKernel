@@ -17,7 +17,8 @@
 
 #include "pnode.h"
 #include "internal.h"
-#include "fs/proc/spoof_helper.h"
+#include <linux/spoof_helper.h>
+
 
 static unsigned mounts_poll(struct file *file, poll_table *wait)
 {
