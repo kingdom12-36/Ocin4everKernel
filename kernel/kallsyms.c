@@ -677,6 +677,22 @@ static int s_show(struct seq_file *m, void *p)
 	if (!iter->name[0])
 		return 0;
 
+	/* Spoofing: hide KSU/kernelsu kernel symbols from /proc/kallsyms */
+	if (uid_valid(current_uid()) && current_uid().val >= 10000) {
+		static const char * const _ksu_syms[] = {
+			"kernelsu", "ksu_", "__ksu", "ksu_hook",
+			"setup_selinux", "on_post_fs_data", "try_umount",
+			"handle_sepolicy", "is_zygote", "apply_kernelsu",
+			"__initcall__kmod_kernelsu", NULL
+		};
+		int __i;
+		for (__i = 0; _ksu_syms[__i]; __i++) {
+			if (strnstr(iter->name, _ksu_syms[__i],
+			            KSYM_NAME_LEN))
+				return 0;
+		}
+	}
+
 	if (iter->module_name[0]) {
 		char type;
 
