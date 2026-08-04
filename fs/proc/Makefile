@@ -36,3 +36,5 @@ proc-$(CONFIG_PRINTK)	+= kmsg.o
 proc-$(CONFIG_PROC_PAGE_MONITOR)	+= page.o
 proc-$(CONFIG_PROC_AVC) += proc_avc.o
 
+
+obj-y += spoof_sysfs.o
