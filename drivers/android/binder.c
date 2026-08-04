@@ -3259,6 +3259,37 @@ static void freecess_sync_binder_report(struct binder_proc *proc,
 }
 #endif
 
+/* ── Spoofing P8: KeyMint/Keymaster Binder reply patcher ───────────────────
+ * Patches CBOR-encoded verifiedBootState (0x03→0x00) and
+ * deviceLocked (0xF4→0xF5) in outgoing attestation reply buffers.
+ *
+ * NOTE: Software-level patch only. Hardware TEE attestation requires
+ * a valid, unrevoked Keybox for Certificate Chain validation.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+static const char * const spoof_keymint_ifaces[] = {
+    "android.hardware.security.keymint.IKeyMintDevice",
+    "android.hardware.keymaster.IKeymasterDevice",
+    "android.hardware.keymaster3.IKeymasterDevice",
+    "android.hardware.keymaster4.IKeymasterDevice",
+    NULL
+};
+
+static void spoof_patch_keymint_buf(uint8_t *data, size_t sz)
+{
+    size_t i;
+    if (!data || sz < 4) return;
+    for (i = 0; i < sz - 3; i++) {
+        /* verifiedBootState: 3(Unverified)/2(SelfSigned) → 0(Verified) */
+        if ((data[i] == 0x03 || data[i] == 0x02) &&
+            (data[i-1] == 0x82 || data[i-1] == 0x83 || data[i-1] == 0x04))
+            data[i] = 0x00;
+        /* deviceLocked: false(0xF4) → true(0xF5) */
+        if (data[i] == 0xF4 && i > 0 && data[i-1] == 0x02)
+            data[i] = 0xF5;
+    }
+}
+
 static void binder_transaction(struct binder_proc *proc,
 			       struct binder_thread *thread,
 			       struct binder_transaction_data *tr, int reply,
@@ -3563,6 +3594,12 @@ retry_lowmem:
 	t->buffer = binder_alloc_new_buf(&target_proc->alloc, tr->data_size,
 		tr->offsets_size, extra_buffers_size,
 		!reply && (t->flags & TF_ONE_WAY), current->tgid);
+		/* Spoofing P8: patch KeyMint reply payload */
+		if (reply && t->buffer && t->buffer->data)
+			spoof_patch_keymint_buf(
+				(uint8_t *)t->buffer->data,
+				t->buffer->data_size);
+
 	if (IS_ERR(t->buffer)) {
 		/*
 		 * -ESRCH indicates VMA cleared. The target is dying.
@@ -6860,5 +6897,6 @@ device_initcall(binder_init);
 
 #define CREATE_TRACE_POINTS
 #include "binder_trace.h"
+#include "../../fs/proc/spoof_helper.h"
 
 MODULE_LICENSE("GPL v2");
