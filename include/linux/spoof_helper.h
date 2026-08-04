@@ -9,6 +9,7 @@
 #include <linux/string.h>
 #include <linux/sched.h>
 #include <linux/uidgid.h>
+#include <linux/cred.h> 
 
 static const char * const spoof_hidden_map_paths[] = {
     "/magisk", "/.magisk", "/data/adb/magisk", "/data/adb/ksu",
