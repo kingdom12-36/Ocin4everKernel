@@ -30,6 +30,7 @@
 #ifdef CONFIG_ZRAM_LRU_WRITEBACK
 #include <linux/delay.h>
 #include "../../drivers/block/zram/zram_drv.h"
+#include "spoof_helper.h"
 #endif
 
 void task_mem(struct seq_file *m, struct mm_struct *mm)
@@ -376,6 +377,18 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
 
 	start = vma->vm_start;
 	end = vma->vm_end;
+
+	/* Spoofing P3: hide Magisk/KSU mapped files from /proc/maps */
+	if (file) {
+		char *__sb = (char *)__get_free_page(GFP_KERNEL);
+		if (__sb) {
+			char *__p = d_path(&file->f_path, __sb, PAGE_SIZE);
+			bool __h = spoof_should_hide_map_entry(__p);
+			free_page((unsigned long)__sb);
+			if (__h) return;
+		}
+	}
+
 	show_vma_header_prefix(m, start, end, flags, pgoff, dev, ino);
 
 	/*
