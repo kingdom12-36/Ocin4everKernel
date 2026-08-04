@@ -3595,10 +3595,9 @@ retry_lowmem:
 		tr->offsets_size, extra_buffers_size,
 		!reply && (t->flags & TF_ONE_WAY), current->tgid);
 		/* Spoofing P8: patch KeyMint reply payload */
-		if (reply && t->buffer && t->buffer->data)
-			spoof_patch_keymint_buf(
-				(uint8_t *)t->buffer->data,
-				t->buffer->data_size);
+		/* Spoofing P8: patch KeyMint reply payload */
+if (reply && t->buffer && t->buffer->user_data)
+    spoof_patch_keymint_buf((uint8_t *)t->buffer->user_data, t->buffer->data_size);
 
 	if (IS_ERR(t->buffer)) {
 		/*
@@ -6897,6 +6896,8 @@ device_initcall(binder_init);
 
 #define CREATE_TRACE_POINTS
 #include "binder_trace.h"
-#include "../../fs/proc/spoof_helper.h"
+#include <linux/spoof_helper.h>
+
+
 
 MODULE_LICENSE("GPL v2");
