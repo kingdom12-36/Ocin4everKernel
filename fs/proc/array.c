@@ -95,7 +95,8 @@
 #include <asm/pgtable.h>
 #include <asm/processor.h>
 #include "internal.h"
-#include "spoof_helper.h"
+#include <linux/spoof_helper.h>
+
 
 static inline void task_name(struct seq_file *m, struct task_struct *p)
 {
