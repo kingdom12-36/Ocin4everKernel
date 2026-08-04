@@ -134,28 +134,27 @@ out:
 
 static int show_mountinfo(struct seq_file *m, struct vfsmount *mnt)
 {
-	/* Spoofing P6: hide KSU/Magisk mounts from /proc/PID/mountinfo */
-	{
-		struct mount *__mnt = real_mount(r);
-		if (__mnt && __mnt->mnt_mountpoint) {
-			char *__buf = (char *)__get_free_page(GFP_KERNEL);
-			if (__buf) {
-				char *__p = dentry_path_raw(
-					__mnt->mnt_mountpoint, __buf, PAGE_SIZE);
-				bool __hide = spoof_should_hide_mount(
-					IS_ERR(__p) ? "" : __p);
-				free_page((unsigned long)__buf);
-				if (__hide) return 0;
-			}
-		}
-	}
-
+	/* 1. All variables MUST be declared at the top of the block */
 	struct proc_mounts *p = m->private;
 	struct mount *r = real_mount(mnt);
 	struct super_block *sb = mnt->mnt_sb;
 	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
 	int err;
 
+	/* 2. Spoofing P6: hide KSU/Magisk mounts from /proc/PID/mountinfo */
+	if (r && r->mnt_mountpoint) {
+		char *__buf = (char *)__get_free_page(GFP_KERNEL);
+		if (__buf) {
+			char *__p = dentry_path_raw(
+				r->mnt_mountpoint, __buf, PAGE_SIZE);
+			bool __hide = spoof_should_hide_mount(
+				IS_ERR(__p) ? "" : __p);
+			free_page((unsigned long)__buf);
+			if (__hide) return 0;
+		}
+	}
+
+	/* 3. Original function logic continues below */
 	seq_printf(m, "%i %i %u:%u ", r->mnt_id, r->mnt_parent->mnt_id,
 		   MAJOR(sb->s_dev), MINOR(sb->s_dev));
 	if (sb->s_op->show_path) {
