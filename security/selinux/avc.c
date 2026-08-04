@@ -742,14 +742,17 @@ out:
  */
 static void avc_audit_pre_callback(struct audit_buffer *ab, void *a)
 {
+	struct common_audit_data *ad = a;
+
 	/* Spoofing P9: suppress KSU/adb_data AVC audit entries */
 	if (ad) {
 		const struct selinux_audit_data *sad =
 			(const struct selinux_audit_data *)ad->selinux_audit_data;
 		if (sad) {
 			char *__sc = NULL, *__tc = NULL;
-			security_sid_to_context(sad->ssid, &__sc, NULL);
-			security_sid_to_context(sad->tsid, &__tc, NULL);
+			u32 __len;
+			security_sid_to_context(&selinux_state, sad->ssid, &__sc, &__len);
+			security_sid_to_context(&selinux_state, sad->tsid, &__tc, &__len);
 			if (spoof_selinux_suppress_audit(
 				__sc ? __sc : "", __tc ? __tc : "")) {
 				kfree(__sc); kfree(__tc); return;
@@ -758,13 +761,13 @@ static void avc_audit_pre_callback(struct audit_buffer *ab, void *a)
 		}
 	}
 
-	struct common_audit_data *ad = a;
 	audit_log_format(ab, "avc:  %s ",
 			 ad->selinux_audit_data->denied ? "denied" : "granted");
 	avc_dump_av(ab, ad->selinux_audit_data->tclass,
 			ad->selinux_audit_data->audited);
 	audit_log_format(ab, " for ");
 }
+
 
 /**
  * avc_audit_post_callback - SELinux specific information
