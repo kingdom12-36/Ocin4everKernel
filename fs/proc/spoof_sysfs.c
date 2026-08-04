@@ -7,7 +7,7 @@
 #include <linux/uaccess.h>
 #include <linux/sched.h>
 #include <linux/uidgid.h>
-#include "spoof_helper.h"
+#include <linux/spoof_helper.h>
 
 static const char * const spoof_denied_sysfs[] = {
     "/sys/module/ksu", "/sys/module/kernelsu",
