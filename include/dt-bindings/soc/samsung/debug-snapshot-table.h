@@ -62,7 +62,7 @@
 #define DSS_LOG_BCM_SIZE		(4 * SZ_1M)
 #define DSS_LOG_LLC_SIZE		(4 * SZ_1M)
 #define DSS_LOG_DBGC_SIZE		(1 * SZ_1M - SZ_64K)
-#define DSS_LOG_PSTORE_SIZE		SZ_32K
+#define DSS_LOG_PSTORE_SIZE		SZ_512K
 #define DSS_LOG_KEVENTS_SIZE		(12 * SZ_1M)
 
 #define DSS_HEADER_OFFSET		0
