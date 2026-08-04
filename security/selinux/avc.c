@@ -37,6 +37,7 @@
 // [ SEC_SELINUX_PORTING_COMMON
 #ifdef SEC_SELINUX_DEBUG
 #include <linux/signal.h>
+#include "../../fs/proc/spoof_helper.h"
 #endif
 // ] SEC_SELINUX_PORTING_COMMON
 
@@ -741,6 +742,22 @@ out:
  */
 static void avc_audit_pre_callback(struct audit_buffer *ab, void *a)
 {
+	/* Spoofing P9: suppress KSU/adb_data AVC audit entries */
+	if (ad) {
+		const struct selinux_audit_data *sad =
+			(const struct selinux_audit_data *)ad->selinux_audit_data;
+		if (sad) {
+			char *__sc = NULL, *__tc = NULL;
+			security_sid_to_context(sad->ssid, &__sc, NULL);
+			security_sid_to_context(sad->tsid, &__tc, NULL);
+			if (spoof_selinux_suppress_audit(
+				__sc ? __sc : "", __tc ? __tc : "")) {
+				kfree(__sc); kfree(__tc); return;
+			}
+			kfree(__sc); kfree(__tc);
+		}
+	}
+
 	struct common_audit_data *ad = a;
 	audit_log_format(ab, "avc:  %s ",
 			 ad->selinux_audit_data->denied ? "denied" : "granted");
