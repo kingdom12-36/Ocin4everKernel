@@ -30,7 +30,7 @@
 #ifdef CONFIG_ZRAM_LRU_WRITEBACK
 #include <linux/delay.h>
 #include "../../drivers/block/zram/zram_drv.h"
-#include "spoof_helper.h"
+#include <linux/spoof_helper.h>
 #endif
 
 void task_mem(struct seq_file *m, struct mm_struct *mm)
