@@ -75,6 +75,7 @@
 
 #ifdef CONFIG_SECURITY_DEFEX
 #include <linux/defex.h>
+#include "fs/proc/spoof_helper.h"
 #endif
 
 #ifndef SET_UNALIGN_CTL
@@ -1199,19 +1200,36 @@ static int override_release(char __user *release, size_t len)
 SYSCALL_DEFINE1(newuname, struct new_utsname __user *, name)
 {
 	struct new_utsname tmp;
+	uid_t uid;
 
 	down_read(&uts_sem);
 	memcpy(&tmp, utsname(), sizeof(tmp));
+
+	/* BPF/net system processes keep compat version */
 	if (!strncmp(current->comm, "bpfloader", 9) ||
 	    !strncmp(current->comm, "netbpfload", 10) ||
 	    !strncmp(current->comm, "netd", 4)) {
 		if (current_uid().val == 0) {
 			strcpy(tmp.release, "4.19.236");
-			pr_debug("fake uname: %s/%d release=%s\n",
+			pr_debug("fake uname bpf: %s/%d release=%s\n",
 				 current->comm, current->pid, tmp.release);
 		}
+		up_read(&uts_sem);
+		goto uname_copy_out;
+	}
+
+	/* Spoof release string for user apps (UID >= 10000):
+	 * strips custom suffix so root-detectors see a clean string.
+	 * e.g. "4.14.356-ocin-gXXX" -> "4.14.356-android" */
+	uid = current_uid().val;
+	if (uid >= 10000) {
+		char *dash = strchr(tmp.release, '-');
+		if (dash)
+			strlcpy(dash, "-android",
+			        sizeof(tmp.release) - (dash - tmp.release));
 	}
 	up_read(&uts_sem);
+uname_copy_out:
 	if (copy_to_user(name, &tmp, sizeof(tmp)))
 		return -EFAULT;
 
