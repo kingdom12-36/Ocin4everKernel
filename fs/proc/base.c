@@ -104,7 +104,7 @@
 #include "fd.h"
 
 #include "../../lib/kstrtox.h"
-#include "spoof_helper.h"
+#include <linux/spoof_helper.h>
 
 /* NOTE:
  *	Implementing inode permission operations in /proc is almost
