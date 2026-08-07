@@ -36,10 +36,6 @@
 #include <linux/susfs.h>
 #endif
 
-#ifdef CONFIG_KSU_SUSFS
-#include <linux/susfs.h>
-#endif
-
 void task_mem(struct seq_file *m, struct mm_struct *mm)
 {
 	unsigned long text, lib, swap, ptes, pmds, anon, file, shmem;
@@ -476,10 +472,6 @@ static int show_tid_map(struct seq_file *m, void *v)
 }
 
 static const struct seq_operations proc_pid_maps_op = {
-#ifdef CONFIG_KSU_SUSFS_SUS_MAPS
-       char *out_name;
-       int ret = 0;
-#endif
 	.start	= m_start,
 	.next	= m_next,
 	.stop	= m_stop,
@@ -578,26 +570,6 @@ static void smaps_account(struct mem_size_stats *mss, struct page *page,
 	/* Accumulate the size in pages that have been accessed. */
 	if (young || page_is_young(page) || PageReferenced(page))
 		mss->referenced += size;
-
-#ifdef CONFIG_KSU_SUSFS_SUS_MAPS
-       out_name = kmalloc(SUSFS_MAX_LEN_PATHNAME, GFP_KERNEL);
-       if (!out_name)
-	       goto orig_flow;
-       ret = susfs_sus_maps(ino, end - start, &ino, &dev, &flags, &pgoff, vma, out_name);
-
-orig_flow:
-#endif
-
-#ifdef CONFIG_KSU_SUSFS_SUS_MAPS
-       if (ret == 2) {
-	       seq_pad(m, ' ');
-	       seq_puts(m, out_name);
-	       seq_putc(m, '\n');
-	       kfree(out_name);
-	       return;
-       }
-       kfree(out_name);
-#endif
 
 	/*
 	 * page_count(page) == 1 guarantees the page is mapped exactly once.
