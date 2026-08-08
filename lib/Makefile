@@ -268,6 +268,8 @@ obj-$(CONFIG_SBITMAP) += sbitmap.o
 
 obj-$(CONFIG_PARMAN) += parman.o
 
+obj-y += xarray.o
+
 obj-y += crypto/
 
 obj-$(CONFIG_DEBUG_SNAPSHOT) += debug-snapshot.o debug-snapshot-log.o debug-snapshot-utils.o \
