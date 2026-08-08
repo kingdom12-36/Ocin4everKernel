@@ -1,4 +1,4 @@
-name: Revert Bad Commits
+name: Revert 10 Duplicate SUSFS Commits
 
 on:
   workflow_dispatch:
@@ -19,9 +19,9 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Revert 9 Bad Commits
+      - name: Revert 10 Bad SUSFS Commits
         run: |
-          # قائمة الـ 9 كوميتات الخاطئة (مرتبة من الأحدث إلى الأقدم)
+          # الكوميتات الـ 10 المكررة مرتبة من الأحدث إلى الأقدم
           BAD_COMMITS=(
             "04513b02fe88957fbe8bc7cc1787f20bb07164f1"
             "e5595a53176ccad86721439c71cd5cd34408421c"
@@ -32,6 +32,7 @@ jobs:
             "547cbc4a38df129415f6d40cd65181937e84d868"
             "a72126bcf579bfdbcf78314352b513090e1d20da"
             "644967640d0ac670c3dc1db779a8ba5229eb6ace"
+            "60f680fff1c74336d04732fd68cb3d05561b2e33"
           )
 
           for commit in "${BAD_COMMITS[@]}"; do
@@ -44,8 +45,8 @@ jobs:
             }
           done
 
-          # إنشاء كوميت واحد يجمع إلغاء التعديلات الـ 9
-          git commit -m "revert: remove 9 invalid loop commits"
+          # دمج عمليات التراجع في كوميت واحد نظيف
+          git commit -m "revert: remove 10 duplicate SUSFS loop commits"
 
       - name: Push Changes
         run: |
