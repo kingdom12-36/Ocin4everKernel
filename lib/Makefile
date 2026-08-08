@@ -268,7 +268,7 @@ obj-$(CONFIG_SBITMAP) += sbitmap.o
 
 obj-$(CONFIG_PARMAN) += parman.o
 
-obj-y += xarray.o
+
 
 obj-y += crypto/
 
