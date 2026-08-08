@@ -1,0 +1,52 @@
+name: Revert Bad Commits
+
+on:
+  workflow_dispatch:
+
+jobs:
+  revert-commits:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PUSH }}
+          fetch-depth: 0
+
+      - name: Set up Git Configuration
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Revert 9 Bad Commits
+        run: |
+          # قائمة الـ 9 كوميتات الخاطئة (مرتبة من الأحدث إلى الأقدم)
+          BAD_COMMITS=(
+            "04513b02fe88957fbe8bc7cc1787f20bb07164f1"
+            "e5595a53176ccad86721439c71cd5cd34408421c"
+            "456175da4a8b77d05f95242a762f074e2ec82ea3"
+            "ff95f12315269dba8dc253d97b083b017b7eb82b"
+            "6ece4c92c0e9217bf3477650ea8aa1b20e0407ad"
+            "1f91ce02b6aec2ef03ee69c5d5ee0654b57bfe48"
+            "547cbc4a38df129415f6d40cd65181937e84d868"
+            "a72126bcf579bfdbcf78314352b513090e1d20da"
+            "644967640d0ac670c3dc1db779a8ba5229eb6ace"
+          )
+
+          for commit in "${BAD_COMMITS[@]}"; do
+            echo "----------------------------------------"
+            echo "[Reverting] $commit"
+            git revert --no-commit "$commit" || {
+              echo "Error: Conflict happened while reverting $commit"
+              git revert --abort
+              exit 1
+            }
+          done
+
+          # إنشاء كوميت واحد يجمع إلغاء التعديلات الـ 9
+          git commit -m "revert: remove 9 invalid loop commits"
+
+      - name: Push Changes
+        run: |
+          git push origin HEAD:${{ github.ref_name }}
