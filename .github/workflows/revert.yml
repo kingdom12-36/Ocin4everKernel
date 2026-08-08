@@ -11,7 +11,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PUSH }}
+          token: ${{ secrets.SECRET_PUSH }}
           fetch-depth: 0
 
       - name: Set up Git Configuration
@@ -19,9 +19,8 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Revert 10 Bad SUSFS Commits
+      - name: Revert 10 Bad SUSFS Commits (Keep Valid Commit)
         run: |
-          # الكوميتات الـ 10 المكررة مرتبة من الأحدث إلى الأقدم
           BAD_COMMITS=(
             "04513b02fe88957fbe8bc7cc1787f20bb07164f1"
             "e5595a53176ccad86721439c71cd5cd34408421c"
@@ -38,14 +37,13 @@ jobs:
           for commit in "${BAD_COMMITS[@]}"; do
             echo "----------------------------------------"
             echo "[Reverting] $commit"
-            git revert --no-commit "$commit" || {
-              echo "Error: Conflict happened while reverting $commit"
-              git revert --abort
-              exit 1
-            }
+            if ! git revert --no-commit "$commit"; then
+              echo "Conflict detected on $commit, forcing retention of valid code (--ours)..."
+              git checkout --ours .
+              git add -A
+            fi
           done
 
-          # دمج عمليات التراجع في كوميت واحد نظيف
           git commit -m "revert: remove 10 duplicate SUSFS loop commits"
 
       - name: Push Changes
