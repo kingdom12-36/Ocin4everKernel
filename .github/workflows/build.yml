@@ -195,7 +195,7 @@ jobs:
           submodules: 'recursive'
           fetch-depth: 0
       - name: Build for d2x
-        run: ./workflows.sh -m d2x -k Y -r N
+        run: ./workflows.sh -m d2x -k y -r N
       - name: Verify build actually produced a flashable package
         run: |
           test -f build/out/d2x/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
@@ -237,7 +237,7 @@ jobs:
           submodules: 'recursive'
           fetch-depth: 0
       - name: Build for d2xks
-        run: ./workflows.sh -m d2xks -k Y -r N
+        run: ./workflows.sh -m d2xks -k y -r N
       - name: Verify build actually produced a flashable package
         run: |
           test -f build/out/d2xks/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
