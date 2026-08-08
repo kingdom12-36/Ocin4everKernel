@@ -1,0 +1,40 @@
+name: Update KSU Submodule to Specific Commit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-ksu:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: Thankssidex
+          submodules: true
+          fetch-depth: 0
+          token: ${{ secrets.PUSH }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Checkout Specific KSU-Next Commit
+        run: |
+          cd KernelSU-Next
+          git fetch origin legacy
+          git checkout a54e4fa46c6cc25bcaa055cf14d790194beffed8
+          cd ..
+
+      - name: Commit and Push Submodule Changes
+        run: |
+          git add KernelSU-Next
+          if git diff --staged --quiet; then
+            echo "Submodule is already pointing to commit a54e4fa46c6cc25bcaa055cf14d790194beffed8"
+          else
+            git commit -m "submodule: update KernelSU-Next to commit a54e4fa46c6cc25bcaa055cf14d790194beffed8"
+            git push origin Thankssidex
+          fi
+
