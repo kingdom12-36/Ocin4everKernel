@@ -798,6 +798,11 @@ void susfs_set_cmdline_or_bootconfig(void __user **user_info) {
 		goto out_copy_to_user;
 	}
 
+	if (*info->fake_cmdline_or_bootconfig == '\0') {
+		info->err = -EINVAL;
+		goto out_copy_to_user;
+	}
+
 	if (!fake_cmdline_or_bootconfig) {
 		fake_cmdline_or_bootconfig = (char *)kzalloc(SUSFS_FAKE_CMDLINE_OR_BOOTCONFIG_SIZE, GFP_KERNEL);
 		if (!fake_cmdline_or_bootconfig) {
