@@ -3,6 +3,17 @@
 #include <linux/idr.h>
 #include <linux/slab.h>
 #include <linux/spinlock.h>
+#include <linux/idr.h>
+
+/* Fix missing xa_lock macros */
+#ifndef xa_lock_irqsave
+#define xa_lock_irqsave(xa, flags) spin_lock_irqsave(&(xa)->xa_lock, flags)
+#endif
+
+#ifndef xa_unlock_irqrestore
+#define xa_unlock_irqrestore(xa, flags) spin_unlock_irqrestore(&(xa)->xa_lock, flags)
+#endif
+
 
 DEFINE_PER_CPU(struct ida_bitmap *, ida_bitmap);
 static DEFINE_SPINLOCK(simple_ida_lock);
