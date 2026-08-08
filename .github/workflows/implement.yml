@@ -1,0 +1,53 @@
+name: Apply SUSFS Patches
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - Thankssidex
+
+jobs:
+  apply-susfs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Kernel Source
+        uses: actions/checkout@v4
+        with:
+          ref: Thankssidex
+          fetch-depth: 0
+          token: ${{ secrets.PUSH }} # تم ربط الـ Secret هنا للـ Push
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Download Patches
+        run: |
+          mkdir -p tmp_patches
+          curl -sSL "https://raw.githubusercontent.com/kingdom12-36/Thankssidex/main/0001-fs-susfs-add-minimized-manual-hooks-1.6.patch" -o tmp_patches/0001.patch
+          curl -sSL "https://raw.githubusercontent.com/kingdom12-36/Thankssidex/main/susfs-v2.2.0_4.14.patch" -o tmp_patches/0002.patch
+
+      - name: Apply Manual Hooks Patch
+        run: |
+          git apply --whitespace=nowarn tmp_patches/0001.patch
+
+      - name: Apply SUSFS v2.2.0 Patch
+        run: |
+          git apply --whitespace=nowarn tmp_patches/0002.patch
+
+      - name: Clean Temporary Files
+        if: always()
+        run: rm -rf tmp_patches
+
+      - name: Commit and Push Changes
+        run: |
+          git add .
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "kernel: apply SUSFS v2.2.0 and manual hooks"
+            git push origin Thankssidex
+          fi
+
