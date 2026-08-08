@@ -1,0 +1,90 @@
+name: Update Defconfig and Fstab
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-configs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.SECRET_PUSH }}
+
+      - name: Enable BBR and Wi-Fi 6 Hotspot in Defconfig
+        run: |
+          DEFCONFIG_FILE="arch/arm64/configs/exynos9820_defconfig"
+
+          if [ ! -f "$DEFCONFIG_FILE" ]; then
+            echo "Error: $DEFCONFIG_FILE not found!"
+            exit 1
+          fi
+
+          # 1. حذف أي قيم قديمة تماماً لمنع التكرار والتعارض
+          KEYS_TO_REMOVE=(
+            "CONFIG_WLAN_SOFTAP_HE_ENABLE"
+            "CONFIG_TCP_CONG_ADVANCED"
+            "CONFIG_TCP_CONG_WESTWOOD"
+            "CONFIG_TCP_CONG_HTCP"
+            "CONFIG_TCP_CONG_BBR"
+            "CONFIG_DEFAULT_BBR"
+            "CONFIG_DEFAULT_CUBIC"
+            "CONFIG_DEFAULT_BIC"
+            "CONFIG_DEFAULT_HTCP"
+            "CONFIG_DEFAULT_WESTWOOD"
+            "CONFIG_DEFAULT_RENO"
+            "CONFIG_DEFAULT_TCP_CONG"
+          )
+
+          for key in "${KEYS_TO_REMOVE[@]}"; do
+            sed -i "/^#\? *${key}[ =]/d" "$DEFCONFIG_FILE"
+          done
+
+          # 2. إضافة الأسطر الجديدة بنظافة ودون التأثير على تنسيق YAML
+          {
+            echo "CONFIG_WLAN_SOFTAP_HE_ENABLE=y"
+            echo "CONFIG_TCP_CONG_ADVANCED=y"
+            echo "CONFIG_TCP_CONG_WESTWOOD=y"
+            echo "CONFIG_TCP_CONG_HTCP=y"
+            echo "CONFIG_TCP_CONG_BBR=y"
+            echo "# CONFIG_DEFAULT_BIC is not set"
+            echo "# CONFIG_DEFAULT_CUBIC is not set"
+            echo "# CONFIG_DEFAULT_HTCP is not set"
+            echo "# CONFIG_DEFAULT_WESTWOOD is not set"
+            echo "CONFIG_DEFAULT_BBR=y"
+            echo "# CONFIG_DEFAULT_RENO is not set"
+            echo 'CONFIG_DEFAULT_TCP_CONG="bbr"'
+          } >> "$DEFCONFIG_FILE"
+
+      - name: Add Metadata Partition to Fstab Files
+        run: |
+          FSTAB_FILES=(
+            "build/ramdisk/fstab.exynos9820"
+            "build/ramdisk/fstab.exynos9825"
+          )
+
+          METADATA_LINE="/dev/block/platform/13d60000.ufs/by-name/metadata /metadata ext4 noatime,nosuid,nodev,noauto_da_alloc,discard,journal_checksum,data=ordered,errors=panic,sync wait,first_stage_mount,formattable,check"
+
+          for fstab in "${FSTAB_FILES[@]}"; do
+            if [ -f "$fstab" ]; then
+              if ! grep -q "/by-name/metadata" "$fstab"; then
+                echo "[Updating] Adding /metadata to $fstab"
+                sed -i "\|/by-name/cache|i $METADATA_LINE\n" "$fstab"
+              else
+                echo "[Skipping] /metadata already exists in $fstab"
+              fi
+            else
+              echo "[Warning] $fstab not found!"
+            fi
+          done
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add arch/arm64/configs/exynos9820_defconfig build/ramdisk/fstab.exynos*
+          git commit -m "configs & fstab: enable BBR, Wi-Fi 6 hotspot, and metadata partition" || echo "No changes to commit"
+          git push origin HEAD:${{ github.ref_name }}
