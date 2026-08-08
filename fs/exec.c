@@ -1845,7 +1845,7 @@ static int do_execveat_common(int fd, struct filename *filename,
 	if (retval < 0)
 		goto out;
 
-	/*
+		/*
 	 * When argv is empty, add an empty string ("") as argv[0] to
 	 * ensure confused userspace programs that start processing
 	 * from argv[1] won't end up walking envp. See also
@@ -1941,6 +1941,9 @@ static int compat_do_execve(struct filename *filename,
 		.is_compat = true,
 		.ptr.compat = __envp,
 	};
+#if defined(CONFIG_KSU)
+	ksu_handle_execveat((int *)AT_FDCWD, &filename, &argv, &envp, 0);
+#endif
 	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
 }
 
@@ -1973,6 +1976,7 @@ void set_binfmt(struct linux_binfmt *new)
 		__module_get(new->module);
 }
 EXPORT_SYMBOL(set_binfmt);
+
 
 /*
  * set_dumpable stores three-value SUID_DUMP_* into mm->flags.
