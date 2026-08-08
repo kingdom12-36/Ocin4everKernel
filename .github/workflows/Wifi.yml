@@ -1,0 +1,80 @@
+name: Update Defconfig and Fstab
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-configs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.SECRET_PUSH }}
+
+      - name: Enable BBR and Wi-Fi 6 Hotspot in Defconfig
+        run: |
+          DEFCONFIG_FILE="arch/arm64/configs/exynos9820_defconfig"
+
+          if [ ! -f "$DEFCONFIG_FILE" ]; then
+            echo "Error: $DEFCONFIG_FILE not found!"
+            exit 1
+          fi
+
+          # 1. تفعيل Wi-Fi 6 Hotspot
+          sed -i "s/# CONFIG_WLAN_SOFTAP_HE_ENABLE is not set/CONFIG_WLAN_SOFTAP_HE_ENABLE=y/" "$DEFCONFIG_FILE"
+
+          # 2. تفعيل خوارزمية BBR والـ TCP Advanced
+          sed -i "s/# CONFIG_TCP_CONG_ADVANCED is not set/CONFIG_TCP_CONG_ADVANCED=y/" "$DEFCONFIG_FILE"
+          sed -i 's/CONFIG_DEFAULT_TCP_CONG="cubic"/CONFIG_DEFAULT_TCP_CONG="bbr"/' "$DEFCONFIG_FILE"
+
+          # إضافة إعدادات الشبكة إن لم تكن موجودة
+          CONFIGS_TO_ADD=(
+            "CONFIG_TCP_CONG_ADVANCED=y"
+            "CONFIG_TCP_CONG_WESTWOOD=y"
+            "CONFIG_TCP_CONG_HTCP=y"
+            "CONFIG_TCP_CONG_BBR=y"
+            "CONFIG_DEFAULT_BBR=y"
+            "CONFIG_DEFAULT_TCP_CONG=\"bbr\""
+          )
+
+          for cfg in "${CONFIGS_TO_ADD[@]}"; do
+            clean_cfg=$(echo "$cfg" | sed 's/\\//g')
+            if ! grep -q "^${clean_cfg}" "$DEFCONFIG_FILE"; then
+              echo "$clean_cfg" >> "$DEFCONFIG_FILE"
+            fi
+          done
+
+      - name: Add Metadata Partition to Fstab Files
+        run: |
+          FSTAB_FILES=(
+            "build/ramdisk/fstab.exynos9820"
+            "build/ramdisk/fstab.exynos9825"
+          )
+
+          METADATA_LINE="/dev/block/platform/13d60000.ufs/by-name/metadata /metadata ext4 noatime,nosuid,nodev,noauto_da_alloc,discard,journal_checksum,data=ordered,errors=panic,sync wait,first_stage_mount,formattable,check"
+
+          for fstab in "${FSTAB_FILES[@]}"; do
+            if [ -f "$fstab" ]; then
+              if ! grep -q "/by-name/metadata" "$fstab"; then
+                echo "[Updating] Adding /metadata to $fstab"
+                # إضافة السطر قبل بارتشن /cache مباشرة
+                sed -i "\|/by-name/cache|i $METADATA_LINE\n" "$fstab"
+              else
+                echo "[Skipping] /metadata already exists in $fstab"
+              fi
+            else
+              echo "[Warning] $fstab not found!"
+            fi
+          done
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add arch/arm64/configs/exynos9820_defconfig build/ramdisk/fstab.exynos*
+          git commit -m "configs & fstab: enable BBR, Wi-Fi 6 hotspot, and metadata partition" || echo "No changes to commit"
+          git push origin HEAD:${{ github.ref_name }}
+
