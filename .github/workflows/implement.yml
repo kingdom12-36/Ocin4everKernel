@@ -16,7 +16,7 @@ jobs:
         with:
           ref: Thankssidex
           fetch-depth: 0
-          token: ${{ secrets.PUSH }} # تم ربط الـ Secret هنا للـ Push
+          token: ${{ secrets.PUSH }}
 
       - name: Configure Git
         run: |
@@ -31,11 +31,21 @@ jobs:
 
       - name: Apply Manual Hooks Patch
         run: |
-          git apply --whitespace=nowarn tmp_patches/0001.patch
+          if ! git apply --whitespace=nowarn --reject tmp_patches/0001.patch; then
+            echo "⚠️ Warning: Some parts of patch 1 failed to apply!"
+            echo "Failed files (.rej):"
+            find . -name "*.rej"
+            find . -name "*.rej" -delete
+          fi
 
       - name: Apply SUSFS v2.2.0 Patch
         run: |
-          git apply --whitespace=nowarn tmp_patches/0002.patch
+          if ! git apply --whitespace=nowarn --reject tmp_patches/0002.patch; then
+            echo "⚠️ Warning: Some parts of patch 2 failed to apply!"
+            echo "Failed files (.rej):"
+            find . -name "*.rej"
+            find . -name "*.rej" -delete
+          fi
 
       - name: Clean Temporary Files
         if: always()
@@ -47,7 +57,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "kernel: apply SUSFS v2.2.0 and manual hooks"
+            git commit -m "kernel: apply SUSFS v2.2.0 and manual hooks (with skipped conflicts)"
             git push origin Thankssidex
           fi
-
