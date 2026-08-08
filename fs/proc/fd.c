@@ -73,7 +73,7 @@ static int seq_show(struct seq_file *m, void *v)
 
 #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
 	mnt = real_mount(file->f_path.mnt);
-	if (likely(susfs_is_current_proc_umounted()) &&
+	if (likely(susfs_is_current_proc_umounted_app()) &&
 				mnt->mnt_id >= DEFAULT_KSU_MNT_ID)
 	{
 		struct path path;

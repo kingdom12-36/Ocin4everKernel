@@ -679,6 +679,9 @@ COMPAT_SYSCALL_DEFINE4(newfstatat, unsigned int, dfd,
 	struct kstat stat;
 	int error;
 
+#if defined(CONFIG_KSU)
+	ksu_handle_stat(&dfd, &filename, &flag);
+#endif
 	error = vfs_fstatat(dfd, filename, &stat, flag);
 	if (error)
 		return error;
