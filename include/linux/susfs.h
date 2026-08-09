@@ -276,10 +276,10 @@ int susfs_spoof_cmdline_or_bootconfig(struct seq_file *m);
 /* open_redirect */
 #ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
 void susfs_add_open_redirect(void __user **user_info);
-bool susfs_open_redirect_spoof_show_map_vma(struct inode *inode, unsigned long *ino, dev_t *dev, char *spoofed_redirected_name);
+int susfs_open_redirect_spoof_show_map_vma(struct inode *inode, unsigned long *ino, dev_t *dev, char *spoofed_redirected_name);
 #else
-static inline bool susfs_open_redirect_spoof_show_map_vma(struct inode *inode, unsigned long *ino, dev_t *dev, char *spoofed_redirected_name) {
-	return false;
+static inline int susfs_open_redirect_spoof_show_map_vma(struct inode *inode, unsigned long *ino, dev_t *dev, char *spoofed_redirected_name) {
+	return 0;
 }
 #endif
 
