@@ -7,9 +7,8 @@
  * Based on code from fs/super.c, copyright Linus Torvalds and others.
  * Heavily rewritten.
  */
-#if IS_ENABLED(CONFIG_KSU_SUSFS)
+
 #include <linux/susfs.h>
-#endif
 #include <linux/syscalls.h>
 #include <linux/export.h>
 #include <linux/capability.h>
