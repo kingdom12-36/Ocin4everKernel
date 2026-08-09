@@ -1,0 +1,104 @@
+name: Smart Apply SUSFS Patches
+
+on:
+  workflow_dispatch:
+
+jobs:
+  apply-susfs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Kernel Source
+        uses: actions/checkout@v4
+        with:
+          ref: Thankssidex
+          fetch-depth: 0
+          token: ${{ secrets.PUSH }}
+
+      - name: Configure Git & Environment
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          sudo apt-get update && sudo apt-get install -y patch
+
+      - name: Download Patches
+        run: |
+          mkdir -p tmp_patches
+          curl -sSL "https://raw.githubusercontent.com/kingdom12-36/Thankssidex/main/0001-fs-susfs-add-minimized-manual-hooks-1.6.patch" -o tmp_patches/0001.patch
+          curl -sSL "https://raw.githubusercontent.com/kingdom12-36/Thankssidex/main/susfs-v2.2.0_4.14.patch" -o tmp_patches/0002.patch
+
+      - name: Smart Apply Patches & Capture Rejects
+        run: |
+          LOG_FILE="UNAPPLIED_CHANGES.log"
+          echo "===============================================" > "$LOG_FILE"
+          echo "      SUSFS PATCH UNAPPLIED / REJECTED HUNKS   " >> "$LOG_FILE"
+          echo "===============================================" >> "$LOG_FILE"
+
+          apply_patch_smartly() {
+            local patch_file="$1"
+            local patch_name=$(basename "$patch_file")
+            echo "-----------------------------------------------"
+            echo "Applying: $patch_name"
+
+            # 1. Attempt strict git apply first
+            if git apply --whitespace=nowarn "$patch_file" 2>/dev/null; then
+              echo "✅ Applied cleanly with 'git apply'."
+              return 0
+            fi
+
+            # 2. Fallback to GNU patch with Fuzzy matching (handles moved #include, whitespace, & offset lines)
+            echo "⚠️ Strict apply failed. Fallback to fuzzy patch (fuzz level 3)..."
+            patch -p1 --fuzz=3 --ignore-whitespace -N < "$patch_file" || true
+
+            # 3. Collect and organize rejected parts (.rej files)
+            REJ_FILES=$(find . -name "*.rej")
+            if [ -n "$REJ_FILES" ]; then
+              echo "⚠️ Some hunks were rejected. Saving to $LOG_FILE..."
+              for rej in $REJ_FILES; do
+                echo -e "\n\n==========================================" >> "$LOG_FILE"
+                echo "FILE: $rej (From Patch: $patch_name)" >> "$LOG_FILE"
+                echo "==========================================" >> "$LOG_FILE"
+                cat "$rej" >> "$LOG_FILE"
+                rm "$rej"
+              done
+            fi
+
+            # Clean up backup files created by patch command (.orig)
+            find . -name "*.orig" -delete
+          }
+
+          # Process patches sequentially
+          for p in tmp_patches/*.patch; do
+            apply_patch_smartly "$p"
+          done
+
+      - name: Save Log of Unapplied Changes to Repository
+        run: |
+          LOG_FILE="UNAPPLIED_CHANGES.log"
+          if grep -q "FILE:" "$LOG_FILE"; then
+            echo "Rejects found. 'UNAPPLIED_CHANGES.log' updated."
+          else
+            echo "All patches applied 100% cleanly!" > "$LOG_FILE"
+          fi
+
+      - name: Upload Rejects Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: susfs-rejected-hunks
+          path: UNAPPLIED_CHANGES.log
+
+      - name: Clean Temporary Files
+        if: always()
+        run: rm -rf tmp_patches
+
+      - name: Commit and Push Changes
+        run: |
+          git add .
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "kernel: smart-apply SUSFS patches and track unapplied hunks"
+            git push origin Thankssidex
+          fi
+
