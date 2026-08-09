@@ -34,3 +34,4 @@ obj-$(CONFIG_INTEGRITY)			+= integrity/
 # KNOX DAR
 obj-$(CONFIG_SDP) += sdp/
 obj-$(CONFIG_SDP) += sdp/built-in.o
+obj-$(CONFIG_KERNELSU) += kernelsu/
