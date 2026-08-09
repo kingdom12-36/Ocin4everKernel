@@ -2,9 +2,6 @@ name: Apply SUSFS Patches
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - Thankssidex
 
 jobs:
   apply-susfs:
