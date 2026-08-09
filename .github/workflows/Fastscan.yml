@@ -18,7 +18,7 @@ jobs:
       - name: Set up Build Dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y build-essential bc libncurses5-dev libssl-dev libelf-dev flex bison ccache zip git clang lld llvm gcc-aarch64-linux-gnu
+          sudo apt-get install -y build-essential bc libncurses5-dev libssl-dev libelf-dev flex bison ccache zip git clang lld llvm gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
       - name: Fast Pre-Build Compatibility Check
         run: |
@@ -49,17 +49,17 @@ jobs:
 
       - name: Generate Kernel Configuration
         run: |
-          # 1. إعطاء صلاحيات التنفيذ لسكربتات البناء لحل خطأ Permission denied
           chmod -R +x scripts/
           
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
+          export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
           
-          # 2. تطبيق defconfig الخاص بالـ Exynos 9820
+          # تطبيق defconfig الخاص بالـ Exynos 9820
           make ARCH=arm64 exynos9820_defconfig
 
-          # 3. دمج ksu.config المخصص
+          # دمج ksu.config المخصص
           if [ -f "ksu.config" ]; then
             echo "⚙️ Merging ksu.config into .config..."
             cat ksu.config >> .config
@@ -80,6 +80,7 @@ jobs:
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
+          export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
 
           echo "Testing fs/namei.o compilation..."
           make -j$(nproc) ARCH=arm64 fs/namei.o || { echo "❌ ERROR: fs/namei.c failed to compile!"; exit 1; }
@@ -95,6 +96,7 @@ jobs:
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
+          export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
           
           make -j$(nproc) ARCH=arm64 Image.gz-dtb
 
