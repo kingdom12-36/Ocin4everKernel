@@ -60,6 +60,17 @@ enum UID_SCHEME {
 	UID_UMOUNTED_PROC,
 };
 
+/********/
+/* ENUM */
+/********/
+enum UID_SCHEME {
+	UID_NON_APP_PROC = 0,
+	UID_ROOT_PROC_EXCEPT_SU_PROC,
+	UID_NON_SU_PROC,
+	UID_UMOUNTED_APP_PROC,
+	UID_UMOUNTED_PROC,
+};
+
 /**********/
 /* STRUCT */
 /**********/

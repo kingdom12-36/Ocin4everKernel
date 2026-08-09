@@ -110,4 +110,13 @@ static inline bool susfs_is_current_proc_umounted_app(void) {
 		unlikely(test_bit(AS_FLAGS_OPEN_REDIRECT, &inode->i_state)) && \
 		susfs_is_current_proc_umounted_app()
 
+#define PRE_CHECK_OPEN_REDIRECT_WITHOUT_UID_CHECK(inode) \
+		inode && \
+		unlikely(test_bit(AS_FLAGS_OPEN_REDIRECT, &inode->i_state))
+
+#define PRE_CHECK_OPEN_REDIRECT(inode) \
+		inode && \
+		unlikely(test_bit(AS_FLAGS_OPEN_REDIRECT, &inode->i_state)) && \
+		susfs_is_current_proc_umounted_app()
+
 #endif // #ifndef KSU_SUSFS_DEF_H

@@ -101,6 +101,9 @@
 #endif
 #include <trace/events/oom.h>
 #include "internal.h"
+#if defined(CONFIG_KSU_SUSFS_SUS_MAP) && defined(CONFIG_KSU_SUSFS_OPEN_REDIRECT)
+#include <linux/susfs_def.h>
+#endif
 #include "fd.h"
 #if defined(CONFIG_KSU_SUSFS_SUS_MAP) || defined(CONFIG_KSU_SUSFS_OPEN_REDIRECT)
 #include <linux/susfs_def.h>
@@ -845,7 +848,20 @@ static ssize_t mem_rw(struct file *file, char __user *buf,
 		goto free;
 
 	flags = FOLL_FORCE | (write ? FOLL_WRITE : 0);
-
+#ifdef CONFIG_KSU_SUSFS_SUS_MAP
+		vma = find_vma(mm, addr);
+		if (vma && vma->vm_file) {
+			struct inode *inode = file_inode(vma->vm_file);
+			if (unlikely(inode->i_state & BIT_SUS_MAPS) && susfs_is_current_proc_umounted()) {
+				if (write) {
+					copied = -EFAULT;
+				} else {
+					copied = -EIO;
+				}
+				break;
+			}
+		}
+#endif
 	while (count > 0) {
 		size_t this_len = min_t(size_t, count, PAGE_SIZE);
 		if (write && copy_from_user(page, buf, this_len)) {
@@ -1649,6 +1665,10 @@ out:
 extern int susfs_open_redirect_spoof_do_proc_readlink(struct inode *inode, char *tmp_buf, int buflen);
 #endif
 
+#ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
+extern int susfs_open_redirect_spoof_do_proc_readlink(struct inode *inode, char *tmp_buf, int buflen);
+#endif
+
 static int do_proc_readlink(struct path *path, char __user *buffer, int buflen)
 {
 	char *tmp = (char *)__get_free_page(GFP_KERNEL);
@@ -1665,6 +1685,18 @@ static int do_proc_readlink(struct path *path, char __user *buffer, int buflen)
 			if (copy_to_user(buffer, tmp, len))
 				len = -EFAULT;
 			goto out;
+		}
+	}
+#endif
+
+#ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
+	if (PRE_CHECK_OPEN_REDIRECT(path->dentry->d_inode)) {
+		if (!susfs_open_redirect_spoof_do_proc_readlink(path->dentry->d_inode, tmp, buflen)) {
+			len = strlen(tmp);
+			if (copy_to_user(buffer, tmp, len))
+				len = -EFAULT;
+			kfree(tmp);
+			return len;
 		}
 	}
 #endif
@@ -2439,6 +2471,13 @@ static int timerslack_ns_show(struct seq_file *m, void *v)
 			goto out;
 	}
 
+#ifdef CONFIG_KSU_SUSFS_SUS_MAP
+			inode = file_inode(vma->vm_file);
+			if (inode->i_mapping && unlikely(test_bit(AS_FLAGS_SUS_MAP, &inode->i_state) && susfs_is_current_proc_umounted_app()))
+			{
+				continue;
+			}
+#endif
 	task_lock(p);
 	seq_printf(m, "%llu\n", p->timer_slack_ns);
 	task_unlock(p);
