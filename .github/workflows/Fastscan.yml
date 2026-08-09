@@ -85,6 +85,9 @@ jobs:
           echo "Testing fs/namei.o compilation..."
           make -j$(nproc) ARCH=arm64 fs/namei.o || { echo "❌ ERROR: fs/namei.c failed to compile!"; exit 1; }
           
+          echo "Generating SELinux headers (flask.h)..."
+          make -j$(nproc) ARCH=arm64 security/selinux/ || { echo "❌ ERROR: SELinux compilation failed!"; exit 1; }
+
           echo "Testing drivers/kernelsu compilation..."
           make -j$(nproc) ARCH=arm64 drivers/kernelsu/ || { echo "❌ ERROR: KernelSU/SuSFS failed to compile!"; exit 1; }
           
