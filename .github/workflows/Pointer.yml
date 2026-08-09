@@ -11,7 +11,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: Thankssidex
+          ref: Noroot2
           submodules: true
           fetch-depth: 0
           token: ${{ secrets.PUSH }}
