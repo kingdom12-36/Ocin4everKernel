@@ -47,24 +47,43 @@ jobs:
           fi
           echo "✅ Header definitions verified!"
 
-          echo "==========================================="
-          echo " 3. Fast Partial Compilation Test           "
-          echo "==========================================="
+      - name: Generate Kernel Configuration
+        run: |
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
           
-          # استبدل vendor_defconfig باسم ملف الإعدادات الخاص بنواتك
+          # 1. إنشاء الإعداد الافتراضي (استبدل vendor_defconfig باسم defconfig الخاص بنواتك)
           make ARCH=arm64 vendor_defconfig
 
-          # تجميع سريع للملفات الحساسة فقط
+          # 2. دمج ksu.config في .config
+          if [ -f "ksu.config" ]; then
+            echo "⚙️ Merging ksu.config into .config..."
+            cat ksu.config >> .config
+            make ARCH=arm64 olddefconfig
+            echo "✅ ksu.config applied successfully!"
+          elif [ -f "arch/arm64/configs/ksu.config" ]; then
+            echo "⚙️ Merging arch/arm64/configs/ksu.config into .config..."
+            cat arch/arm64/configs/ksu.config >> .config
+            make ARCH=arm64 olddefconfig
+            echo "✅ ksu.config applied successfully!"
+          else
+            echo "⚠️ Warning: ksu.config not found! Proceeding with base defconfig."
+          fi
+
+      - name: Fast Partial Compilation Test
+        run: |
+          export ARCH=arm64
+          export SUBARCH=arm64
+          export CROSS_COMPILE=aarch64-linux-gnu-
+
           echo "Testing fs/namei.o compilation..."
           make -j$(nproc) ARCH=arm64 fs/namei.o || { echo "❌ ERROR: fs/namei.c failed to compile!"; exit 1; }
           
           echo "Testing drivers/kernelsu compilation..."
           make -j$(nproc) ARCH=arm64 drivers/kernelsu/ || { echo "❌ ERROR: KernelSU/SuSFS failed to compile!"; exit 1; }
           
-          echo "🚀 SUCCESS: All compatibility checks passed! Starting full build..."
+          echo "🚀 SUCCESS: Compatibility checks passed!"
 
       - name: Build Full Kernel
         run: |
