@@ -49,14 +49,17 @@ jobs:
 
       - name: Generate Kernel Configuration
         run: |
+          # 1. إعطاء صلاحيات التنفيذ لسكربتات البناء لحل خطأ Permission denied
+          chmod -R +x scripts/
+          
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
           
-          # 1. تطبيق الإعداد الافتراضي للـ Exynos 9820
+          # 2. تطبيق defconfig الخاص بالـ Exynos 9820
           make ARCH=arm64 exynos9820_defconfig
 
-          # 2. دمج ksu.config المخصص
+          # 3. دمج ksu.config المخصص
           if [ -f "ksu.config" ]; then
             echo "⚙️ Merging ksu.config into .config..."
             cat ksu.config >> .config
@@ -73,6 +76,7 @@ jobs:
 
       - name: Fast Partial Compilation Test
         run: |
+          chmod -R +x scripts/
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
@@ -87,6 +91,7 @@ jobs:
 
       - name: Build Full Kernel
         run: |
+          chmod -R +x scripts/
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
