@@ -17,11 +17,33 @@
 #define SUSFS_VARIANT "GKI"
 #endif
 
+/*************************/
+/* FALLBACK DEFINITIONS  */
+/*************************/
+#ifndef ND_STATE_LOOKUP_LAST
+#define ND_STATE_LOOKUP_LAST 0x0001
+#endif
+
+#ifndef ND_STATE_OPEN_LAST
+#define ND_STATE_OPEN_LAST 0x0002
+#endif
+
+#ifndef ND_FLAGS_LOOKUP_LAST
+#define ND_FLAGS_LOOKUP_LAST 0x0001
+#endif
+
 /*********/
 /* MACRO */
 /*********/
 #define getname_safe(name) (name == NULL ? ERR_PTR(-EINVAL) : getname(name))
 #define putname_safe(name) (IS_ERR(name) ? NULL : putname(name))
+
+#ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
+extern bool susfs_is_inode_open_redirect(struct inode *inode);
+#define SUSFS_IS_INODE_OPEN_REDIRECT(inode) susfs_is_inode_open_redirect(inode)
+#else
+#define SUSFS_IS_INODE_OPEN_REDIRECT(inode) (false)
+#endif
 
 /********/
 /* ENUM */
@@ -69,7 +91,7 @@ struct st_susfs_hide_sus_mnts_for_non_su_procs {
 #define KSTAT_SPOOF_ATIME_TV_NSEC (1 << 5)
 #define KSTAT_SPOOF_MTIME_TV_SEC (1 << 6)
 #define KSTAT_SPOOF_MTIME_TV_NSEC (1 << 7)
-#define KSTAT_SPOOF_CTIME_TV_SEC (1 < 8)
+#define KSTAT_SPOOF_CTIME_TV_SEC (1 << 8)
 #define KSTAT_SPOOF_CTIME_TV_NSEC (1 << 9)
 #define KSTAT_SPOOF_BLOCKS (1 << 10)
 #define KSTAT_SPOOF_BLKSIZE (1 << 11)
