@@ -319,4 +319,3 @@ source "fs/dlm/Kconfig"
 source "fs/unicode/Kconfig"
 
 endmenu
-source "fs/susfs/Kconfig"
