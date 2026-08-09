@@ -1161,6 +1161,40 @@ static struct mount *skip_mnt_tree(struct mount *p)
 	return p;
 }
 
+/* ==================== أضف الكود هنا (بداية) ==================== */
+#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
+/* A copy of alloc_vfsmnt() but allocates the fake mnt_id for mount
+ * that is mounted or single cloned by ksu process
+ */
+struct mount *susfs_alloc_non_unshare_ksu_vfsmnt(const char *name)
+{
+	struct mount *mnt = kmem_cache_zalloc(mnt_cache, GFP_KERNEL);
+	int res;
+
+	if (mnt) {
+		res = ida_alloc_min(&mnt_id_ida, DEFAULT_KSU_MNT_ID, GFP_KERNEL);
+		if (res < 0)
+			goto out_free_cache;
+
+		mnt->mnt_id = res;
+
+		if (name) {
+			mnt->mnt_devname = kstrdup_const(name, GFP_KERNEL_ACCOUNT);
+			if (!mnt->mnt_devname)
+				goto out_free_id;
+		}
+	}
+	return mnt;
+
+out_free_id:
+	ida_free(&mnt_id_ida, mnt->mnt_id);
+out_free_cache:
+	kmem_cache_free(mnt_cache, mnt);
+	return NULL;
+}
+#endif
+/* ==================== أضف الكود هنا (نهاية) ==================== */
+
 struct vfsmount *
 vfs_kern_mount(struct file_system_type *type, int flags, const char *name, void *data)
 {
@@ -1177,6 +1211,7 @@ vfs_kern_mount(struct file_system_type *type, int flags, const char *name, void 
 		mnt = susfs_alloc_non_unshare_ksu_vfsmnt(name ?: "none");
 		goto bypass_orig_flow;
 	}
+
 #endif
 	mnt = alloc_vfsmnt(name);
 #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
