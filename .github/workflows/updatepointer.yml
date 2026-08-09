@@ -25,16 +25,16 @@ jobs:
         run: |
           cd KernelSU-Next
           git fetch origin legacy
-          git checkout f110cddc07e27b21ad77c6c31261660efb25dce4
+          git checkout ba4422f0556e10f40dda1887631d87a18ede4ec5
           cd ..
 
       - name: Commit and Push Submodule Changes
         run: |
           git add KernelSU-Next
           if git diff --staged --quiet; then
-            echo "Submodule is already pointing to commit f110cddc07e27b21ad77c6c31261660efb25dce4"
+            echo "Submodule is already pointing to commit ba4422f0556e10f40dda1887631d87a18ede4ec5"
           else
-            git commit -m "submodule: update KernelSU-Next to commit f110cddc07e27b21ad77c6c31261660efb25dce4"
+            git commit -m "submodule: update KernelSU-Next to commit ba4422f0556e10f40dda1887631d87a18ede4ec5"
             git push origin Thankssidex
           fi
 
