@@ -2,7 +2,7 @@ name: Update KSU Submodule to Specific Commit
 
 on:
   workflow_dispatch:
-
+  push: 
 jobs:
   update-ksu:
     runs-on: ubuntu-latest
@@ -24,7 +24,7 @@ jobs:
       - name: Update Submodule Commit
         run: |
           cd KernelSU-Next
-          git fetch origin
+          git fetch origin f110cddc07e27b21ad77c6c31261660efb25dce4
           git checkout f110cddc07e27b21ad77c6c31261660efb25dce4
           cd ..
 
@@ -35,5 +35,5 @@ jobs:
             echo "Submodule is already pointing to commit f110cddc07e27b21ad77c6c31261660efb25dce4"
           else
             git commit -m "submodule: update KernelSU-Next to commit f110cddc07e27b21ad77c6c31261660efb25dce4"
-            git push origin Thankssidex
+            git push origin HEAD:Noroot2
           fi
