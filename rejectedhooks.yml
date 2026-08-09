@@ -1226,36 +1226,3 @@ rejected_hooks:
        #ifdef CONFIG_KSU_SUSFS_SUS_MAP
       
 
-resolution:
-  decision: "No additional source changes are required for the 14 rejected hunks."
-  verified_against_head: "a0b0953efe1987faac31057991eed6523bc0510f"
-  method: "Compared each rejected context with the current Noroot2 tree through the GitHub Contents API; no repository clone or source copy was used."
-  entries:
-    - patch: 6
-      files: ["fs/exec.c", "fs/open.c", "fs/stat.c", "kernel/reboot.c"]
-      result: "no-op"
-      reason: "The rejected CONFIG_KSU inline-hook context is absent from the current kernel variant; patch 8 later removes that legacy inline-hook form."
-    - patch: 8
-      files: ["drivers/tty/pty.c", "fs/exec.c", "fs/open.c", "fs/stat.c", "kernel/reboot.c"]
-      result: "already-resolved"
-      reason: "The inline KSU hooks targeted for removal are already absent from the current tree."
-    - patch: 6
-      files: ["fs/proc/task_mmu.c"]
-      result: "superseded"
-      reason: "The earlier SUS_MAP context is superseded by the later SUSFS_IS_INODE_SUS_MAP implementation already present."
-    - patch: 10
-      files: ["fs/proc/task_mmu.c"]
-      result: "already-resolved"
-      reason: "The current tree uses inode i_state and SUSFS_IS_INODE_SUS_MAP rather than the rejected pre-update context."
-    - patch: 17
-      files: ["fs/proc/task_mmu.c"]
-      result: "already-resolved"
-      reason: "The current tree already contains the later SUSFS_IS_INODE_SUS_MAP form."
-    - patch: 23
-      files: ["fs/proc/task_mmu.c"]
-      result: "already-resolved"
-      reason: "The current tree already contains the later OPEN_REDIRECT/SUS_MAP-aware code."
-    - patch: 34
-      files: ["fs/proc/task_mmu.c"]
-      result: "already-resolved"
-      reason: "The accepted patch 34 changes are present; the rejected hunks target an older show_smap context not present in this kernel variant."
