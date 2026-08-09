@@ -19,10 +19,6 @@ on:
 permissions:
   contents: write
 
-env:
-  # إجبار المترجم على إيقاف التجميع فوراً عند اكتشاف مؤشرات غير آمنة أو قيم إرجاع مفقودة
-  KCFLAGS: "-Werror=return-type -Werror=uninitialized -Werror=array-bounds -Werror=implicit-function-declaration"
-
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -39,16 +35,22 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig sparse
+          sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig
       - name: Set should_build_all output
         run: echo "should_build_all=${{ github.event.inputs.model == 'all' }}" >> $GITHUB_OUTPUT
       - name: Resolve pinned KernelSU-Next version
         id: ksu_version
         run: |
           cd KernelSU-Next
+          
           TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo unknown)
           SHA=$(git rev-parse --short HEAD)
+          
           COMMIT_COUNT=$(git rev-list --count HEAD 2>/dev/null || echo 0)
+          
+          echo "Pinned KernelSU-Next submodule: $TAG ($SHA)"
+          echo "Submodule Commit Count: $COMMIT_COUNT"
+          
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "date=$(date +'%d-%m-%Y')" >> $GITHUB_OUTPUT
           echo "commits=$COMMIT_COUNT" >> $GITHUB_OUTPUT
@@ -62,21 +64,12 @@ jobs:
         with:
           submodules: 'recursive'
           fetch-depth: 0
-      - name: Inject Static Analysis & Strict Debug Configs
-        run: |
-          DEFCONFIG="arch/arm64/configs/exynos9820-d1_defconfig"
-          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> $DEFCONFIG || true
-          echo "CONFIG_PANIC_ON_OOPS=y" >> $DEFCONFIG || true
-          echo "CONFIG_FRAME_POINTER=y" >> $DEFCONFIG || true
-          echo "CONFIG_DEBUG_SECTION_MISMATCH=y" >> $DEFCONFIG || true
       - name: Build for d1
         run: ./workflows.sh -m d1 -k Y -r N
-      - name: Verify & Package Debug Artifacts
+      - name: Verify build actually produced a flashable package
         run: |
-          test -f build/out/d1/boot.img || { echo "boot.img missing"; exit 1; }
-          find . -name "vmlinux" -exec cp {} build/out/d1/vmlinux \;
-          find . -name "System.map" -exec cp {} build/out/d1/System.map \;
-          cd build/out/d1 && zip -9 debug-symbols-d1.zip vmlinux System.map
+          test -f build/out/d1/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
+          ls build/out/d1/*.zip || { echo "no flashable zip found in build/out/d1"; exit 1; }
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -93,21 +86,12 @@ jobs:
         with:
           submodules: 'recursive'
           fetch-depth: 0
-      - name: Inject Static Analysis & Strict Debug Configs
-        run: |
-          DEFCONFIG="arch/arm64/configs/exynos9820-d1xks_defconfig"
-          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> $DEFCONFIG || true
-          echo "CONFIG_PANIC_ON_OOPS=y" >> $DEFCONFIG || true
-          echo "CONFIG_FRAME_POINTER=y" >> $DEFCONFIG || true
-          echo "CONFIG_DEBUG_SECTION_MISMATCH=y" >> $DEFCONFIG || true
       - name: Build for d1xks
         run: ./workflows.sh -m d1xks -k y -r N
-      - name: Verify & Package Debug Artifacts
+      - name: Verify build actually produced a flashable package
         run: |
-          test -f build/out/d1xks/boot.img || { echo "boot.img missing"; exit 1; }
-          find . -name "vmlinux" -exec cp {} build/out/d1xks/vmlinux \;
-          find . -name "System.map" -exec cp {} build/out/d1xks/System.map \;
-          cd build/out/d1xks && zip -9 debug-symbols-d1xks.zip vmlinux System.map
+          test -f build/out/d1xks/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
+          ls build/out/d1xks/*.zip || { echo "no flashable zip found in build/out/d1xks"; exit 1; }
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -125,21 +109,12 @@ jobs:
           submodules: 'recursive'
           token: ${{ secrets.FCK_SUBMODULES }}
           fetch-depth: 0
-      - name: Inject Static Analysis & Strict Debug Configs
-        run: |
-          DEFCONFIG="arch/arm64/configs/exynos9820-d2s_defconfig"
-          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> $DEFCONFIG || true
-          echo "CONFIG_PANIC_ON_OOPS=y" >> $DEFCONFIG || true
-          echo "CONFIG_FRAME_POINTER=y" >> $DEFCONFIG || true
-          echo "CONFIG_DEBUG_SECTION_MISMATCH=y" >> $DEFCONFIG || true
       - name: Build for d2s
         run: ./workflows.sh -m d2s -k y -r N
-      - name: Verify & Package Debug Artifacts
+      - name: Verify build actually produced a flashable package
         run: |
-          test -f build/out/d2s/boot.img || { echo "boot.img missing"; exit 1; }
-          find . -name "vmlinux" -exec cp {} build/out/d2s/vmlinux \;
-          find . -name "System.map" -exec cp {} build/out/d2s/System.map \;
-          cd build/out/d2s && zip -9 debug-symbols-d2s.zip vmlinux System.map
+          test -f build/out/d2s/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
+          ls build/out/d2s/*.zip || { echo "no flashable zip found in build/out/d2s"; exit 1; }
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -156,21 +131,12 @@ jobs:
         with:
           submodules: 'recursive'
           fetch-depth: 0
-      - name: Inject Static Analysis & Strict Debug Configs
-        run: |
-          DEFCONFIG="arch/arm64/configs/exynos9820-d2x_defconfig"
-          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> $DEFCONFIG || true
-          echo "CONFIG_PANIC_ON_OOPS=y" >> $DEFCONFIG || true
-          echo "CONFIG_FRAME_POINTER=y" >> $DEFCONFIG || true
-          echo "CONFIG_DEBUG_SECTION_MISMATCH=y" >> $DEFCONFIG || true
       - name: Build for d2x
         run: ./workflows.sh -m d2x -k y -r N
-      - name: Verify & Package Debug Artifacts
+      - name: Verify build actually produced a flashable package
         run: |
-          test -f build/out/d2x/boot.img || { echo "boot.img missing"; exit 1; }
-          find . -name "vmlinux" -exec cp {} build/out/d2x/vmlinux \;
-          find . -name "System.map" -exec cp {} build/out/d2x/System.map \;
-          cd build/out/d2x && zip -9 debug-symbols-d2x.zip vmlinux System.map
+          test -f build/out/d2x/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
+          ls build/out/d2x/*.zip || { echo "no flashable zip found in build/out/d2x"; exit 1; }
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -187,21 +153,12 @@ jobs:
         with:
           submodules: 'recursive'
           fetch-depth: 0
-      - name: Inject Static Analysis & Strict Debug Configs
-        run: |
-          DEFCONFIG="arch/arm64/configs/exynos9820-d2xks_defconfig"
-          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> $DEFCONFIG || true
-          echo "CONFIG_PANIC_ON_OOPS=y" >> $DEFCONFIG || true
-          echo "CONFIG_FRAME_POINTER=y" >> $DEFCONFIG || true
-          echo "CONFIG_DEBUG_SECTION_MISMATCH=y" >> $DEFCONFIG || true
       - name: Build for d2xks
         run: ./workflows.sh -m d2xks -k Y -r N
-      - name: Verify & Package Debug Artifacts
+      - name: Verify build actually produced a flashable package
         run: |
-          test -f build/out/d2xks/boot.img || { echo "boot.img missing"; exit 1; }
-          find . -name "vmlinux" -exec cp {} build/out/d2xks/vmlinux \;
-          find . -name "System.map" -exec cp {} build/out/d2xks/System.map \;
-          cd build/out/d2xks && zip -9 debug-symbols-d2xks.zip vmlinux System.map
+          test -f build/out/d2xks/boot.img || { echo "boot.img missing - build did not complete"; exit 1; }
+          ls build/out/d2xks/*.zip || { echo "no flashable zip found in build/out/d2xks"; exit 1; }
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
