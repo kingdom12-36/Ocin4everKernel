@@ -283,4 +283,3 @@ source "security/Kconfig.hardening"
 
 endmenu
 
-source "security/kernelsu/Kconfig"
