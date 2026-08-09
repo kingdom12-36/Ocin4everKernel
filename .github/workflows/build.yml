@@ -19,6 +19,10 @@ on:
 permissions:
   contents: write
 
+env:
+  # إجبار المترجم على إيقاف التجميع فوراً عند اكتشاف مؤشرات غير آمنة أو قيم إرجاع مفقودة
+  KCFLAGS: "-Werror=return-type -Werror=uninitialized -Werror=array-bounds -Werror=implicit-function-declaration"
+
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -35,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig
+          sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig sparse
       - name: Set should_build_all output
         run: echo "should_build_all=${{ github.event.inputs.model == 'all' }}" >> $GITHUB_OUTPUT
       - name: Resolve pinned KernelSU-Next version
@@ -58,11 +62,13 @@ jobs:
         with:
           submodules: 'recursive'
           fetch-depth: 0
-      - name: Inject Panic Debug Flags
+      - name: Inject Static Analysis & Strict Debug Configs
         run: |
-          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> arch/arm64/configs/exynos9820-d1_defconfig || true
-          echo "CONFIG_PANIC_ON_OOPS=y" >> arch/arm64/configs/exynos9820-d1_defconfig || true
-          echo "CONFIG_FRAME_POINTER=y" >> arch/arm64/configs/exynos9820-d1_defconfig || true
+          DEFCONFIG="arch/arm64/configs/exynos9820-d1_defconfig"
+          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> $DEFCONFIG || true
+          echo "CONFIG_PANIC_ON_OOPS=y" >> $DEFCONFIG || true
+          echo "CONFIG_FRAME_POINTER=y" >> $DEFCONFIG || true
+          echo "CONFIG_DEBUG_SECTION_MISMATCH=y" >> $DEFCONFIG || true
       - name: Build for d1
         run: ./workflows.sh -m d1 -k Y -r N
       - name: Verify & Package Debug Artifacts
@@ -75,8 +81,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ExtremeKRNL-Nexus-d1
-          path: |
-            build/out/d1/*.zip
+          path: build/out/d1/*.zip
           if-no-files-found: error
 
   build_d1xks:
@@ -88,11 +93,13 @@ jobs:
         with:
           submodules: 'recursive'
           fetch-depth: 0
-      - name: Inject Panic Debug Flags
+      - name: Inject Static Analysis & Strict Debug Configs
         run: |
-          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> arch/arm64/configs/exynos9820-d1xks_defconfig || true
-          echo "CONFIG_PANIC_ON_OOPS=y" >> arch/arm64/configs/exynos9820-d1xks_defconfig || true
-          echo "CONFIG_FRAME_POINTER=y" >> arch/arm64/configs/exynos9820-d1xks_defconfig || true
+          DEFCONFIG="arch/arm64/configs/exynos9820-d1xks_defconfig"
+          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> $DEFCONFIG || true
+          echo "CONFIG_PANIC_ON_OOPS=y" >> $DEFCONFIG || true
+          echo "CONFIG_FRAME_POINTER=y" >> $DEFCONFIG || true
+          echo "CONFIG_DEBUG_SECTION_MISMATCH=y" >> $DEFCONFIG || true
       - name: Build for d1xks
         run: ./workflows.sh -m d1xks -k y -r N
       - name: Verify & Package Debug Artifacts
@@ -105,8 +112,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ExtremeKRNL-Nexus-d1xks
-          path: |
-            build/out/d1xks/*.zip
+          path: build/out/d1xks/*.zip
           if-no-files-found: error
 
   build_d2s:
@@ -119,11 +125,13 @@ jobs:
           submodules: 'recursive'
           token: ${{ secrets.FCK_SUBMODULES }}
           fetch-depth: 0
-      - name: Inject Panic Debug Flags
+      - name: Inject Static Analysis & Strict Debug Configs
         run: |
-          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> arch/arm64/configs/exynos9820-d2s_defconfig || true
-          echo "CONFIG_PANIC_ON_OOPS=y" >> arch/arm64/configs/exynos9820-d2s_defconfig || true
-          echo "CONFIG_FRAME_POINTER=y" >> arch/arm64/configs/exynos9820-d2s_defconfig || true
+          DEFCONFIG="arch/arm64/configs/exynos9820-d2s_defconfig"
+          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> $DEFCONFIG || true
+          echo "CONFIG_PANIC_ON_OOPS=y" >> $DEFCONFIG || true
+          echo "CONFIG_FRAME_POINTER=y" >> $DEFCONFIG || true
+          echo "CONFIG_DEBUG_SECTION_MISMATCH=y" >> $DEFCONFIG || true
       - name: Build for d2s
         run: ./workflows.sh -m d2s -k y -r N
       - name: Verify & Package Debug Artifacts
@@ -136,8 +144,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ExtremeKRNL-Nexus-d2s
-          path: |
-            build/out/d2s/*.zip
+          path: build/out/d2s/*.zip
           if-no-files-found: error
 
   build_d2x:
@@ -149,11 +156,13 @@ jobs:
         with:
           submodules: 'recursive'
           fetch-depth: 0
-      - name: Inject Panic Debug Flags
+      - name: Inject Static Analysis & Strict Debug Configs
         run: |
-          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> arch/arm64/configs/exynos9820-d2x_defconfig || true
-          echo "CONFIG_PANIC_ON_OOPS=y" >> arch/arm64/configs/exynos9820-d2x_defconfig || true
-          echo "CONFIG_FRAME_POINTER=y" >> arch/arm64/configs/exynos9820-d2x_defconfig || true
+          DEFCONFIG="arch/arm64/configs/exynos9820-d2x_defconfig"
+          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> $DEFCONFIG || true
+          echo "CONFIG_PANIC_ON_OOPS=y" >> $DEFCONFIG || true
+          echo "CONFIG_FRAME_POINTER=y" >> $DEFCONFIG || true
+          echo "CONFIG_DEBUG_SECTION_MISMATCH=y" >> $DEFCONFIG || true
       - name: Build for d2x
         run: ./workflows.sh -m d2x -k y -r N
       - name: Verify & Package Debug Artifacts
@@ -166,8 +175,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ExtremeKRNL-Nexus-d2x
-          path: |
-            build/out/d2x/*.zip
+          path: build/out/d2x/*.zip
           if-no-files-found: error
 
   build_d2xks:
@@ -179,11 +187,13 @@ jobs:
         with:
           submodules: 'recursive'
           fetch-depth: 0
-      - name: Inject Panic Debug Flags
+      - name: Inject Static Analysis & Strict Debug Configs
         run: |
-          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> arch/arm64/configs/exynos9820-d2xks_defconfig || true
-          echo "CONFIG_PANIC_ON_OOPS=y" >> arch/arm64/configs/exynos9820-d2xks_defconfig || true
-          echo "CONFIG_FRAME_POINTER=y" >> arch/arm64/configs/exynos9820-d2xks_defconfig || true
+          DEFCONFIG="arch/arm64/configs/exynos9820-d2xks_defconfig"
+          echo "CONFIG_DEBUG_BUGVERBOSE=y" >> $DEFCONFIG || true
+          echo "CONFIG_PANIC_ON_OOPS=y" >> $DEFCONFIG || true
+          echo "CONFIG_FRAME_POINTER=y" >> $DEFCONFIG || true
+          echo "CONFIG_DEBUG_SECTION_MISMATCH=y" >> $DEFCONFIG || true
       - name: Build for d2xks
         run: ./workflows.sh -m d2xks -k Y -r N
       - name: Verify & Package Debug Artifacts
@@ -196,8 +206,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ExtremeKRNL-Nexus-d2xks
-          path: |
-            build/out/d2xks/*.zip
+          path: build/out/d2xks/*.zip
           if-no-files-found: error
 
   release:
