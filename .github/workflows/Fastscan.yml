@@ -3,7 +3,6 @@ name: Build Kernel with SuSFS & KernelSU-Next
 on:
   workflow_dispatch:
   push:
-    branches: [ main, master ]
 
 jobs:
   build-kernel:
@@ -19,14 +18,13 @@ jobs:
       - name: Set up Build Dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y build-essential bc libncurses5-dev libssl-dev libelf-dev flex bison ccache zip git clang lld llvm aarch64-linux-gnu-gcc
+          sudo apt-get install -y build-essential bc libncurses5-dev libssl-dev libelf-dev flex bison ccache zip git clang lld llvm gcc-aarch64-linux-gnu
 
       - name: Fast Pre-Build Compatibility Check
         run: |
           echo "==========================================="
           echo " 1. Checking Patch Compatibility (Dry-Run) "
           echo "==========================================="
-          # عدّل مسار ملف الرقعة وحسب مجلدك
           PATCH_FILE="patches/susfs_patch_to_4.14.patch"
           
           if [ -f "$PATCH_FILE" ]; then
@@ -59,7 +57,7 @@ jobs:
           # استبدل vendor_defconfig باسم ملف الإعدادات الخاص بنواتك
           make ARCH=arm64 vendor_defconfig
 
-          # تجميع سريع للملفات الحساسة فقط (يستغرق ثوانٍ بدلاً من انتظار البناء الكامل)
+          # تجميع سريع للملفات الحساسة فقط
           echo "Testing fs/namei.o compilation..."
           make -j$(nproc) ARCH=arm64 fs/namei.o || { echo "❌ ERROR: fs/namei.c failed to compile!"; exit 1; }
           
