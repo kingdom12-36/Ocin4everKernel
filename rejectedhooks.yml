@@ -1,0 +1,1227 @@
+version: 1
+repository: "kingdom12-36/Ocin4everKernel"
+branch: "Noroot2"
+base_commit: "3d653934d46413d84154070d0b5de054dfeb0e77"
+source_patch_file: "full_imp.txt"
+status: pending_manual_review
+patch_count: 36
+rejected_hook_count: 14
+applied_with_fuzz:
+  - patch: 1
+    subject: "[PATCH 01/36] lib/idr.c: remove simple_ida_lock"
+    message: "patching file lib/idr.c\nHunk #1 succeeded at 3 with fuzz 2.\nHunk #2 succeeded at 496 (offset 31 lines).\nHunk #3 succeeded at 506 (offset 31 lines).\nHunk #4 succeeded at 532 (offset 31 lines)."
+  - patch: 2
+    subject: "[PATCH 02/36] ida: Lock the IDA in ida_destroy"
+    message: "patching file lib/idr.c\nHunk #1 succeeded at 438 (offset 31 lines)."
+  - patch: 3
+    subject: "[PATCH 03/36] ida: Add new API"
+    message: "patching file include/linux/idr.h\nHunk #1 succeeded at 253 (offset 2 lines).\npatching file lib/idr.c\nHunk #1 succeeded at 230 (offset 31 lines).\nHunk #2 succeeded at 292 (offset 31 lines).\nHunk #3 succeeded at 467 (offset 31 lines).\nHunk #4 succeeded at 505 (offset 31 lines).\nHunk #5 succeeded at 533 (offset 31 lines)."
+  - patch: 4
+    subject: "[PATCH 04/36] fs: Convert unnamed_dev_ida to new API"
+    message: "patching file fs/super.c\nHunk #1 succeeded at 966 (offset 11 lines).\nHunk #2 succeeded at 1009 (offset 11 lines).\nHunk #3 succeeded at 1017 (offset 11 lines).\nHunk #4 succeeded at 1025 (offset 11 lines)."
+  - patch: 5
+    subject: "[PATCH 05/36] fs: Convert namespace IDAs to new API"
+    message: "patching file fs/namespace.c\nHunk #1 succeeded at 69 (offset 7 lines).\nHunk #2 succeeded at 162 (offset 63 lines).\nHunk #3 succeeded at 193 (offset 63 lines)."
+  - patch: 11
+    subject: "[PATCH 11/36] fs: susfs: Replaced susfs_is_boot_completed_triggered"
+    message: "patching file fs/namespace.c\nHunk #1 succeeded at 40 (offset 4 lines).\nHunk #2 succeeded at 210 (offset 63 lines).\nHunk #3 succeeded at 237 (offset 63 lines).\nHunk #4 succeeded at 1316 (offset 135 lines).\nHunk #5 succeeded at 1408 (offset 160 lines).\npatching file fs/susfs.c\npatching file include/linux/susfs.h"
+  - patch: 13
+    subject: "[PATCH 13/36] fs: susfs: Keep checking for ksu domain and assigning"
+    message: "patching file fs/namespace.c\nHunk #1 succeeded at 42 (offset 4 lines).\nHunk #2 succeeded at 214 (offset 63 lines).\nHunk #3 succeeded at 234 (offset 63 lines)."
+  - patch: 15
+    subject: "[PATCH 15/36] fs: susfs: Fix potential race issue for SUS_MAP"
+    message: "patching file fs/proc/task_mmu.c\nHunk #1 succeeded at 1695 (offset -8 lines).\nHunk #2 succeeded at 1705 (offset -8 lines)."
+  - patch: 16
+    subject: "[PATCH 16/36] fs: susfs: Optimize SUS_MOUNT and other optimizations -"
+    message: "patching file fs/namespace.c\nHunk #1 succeeded at 40 (offset 4 lines).\nHunk #2 succeeded at 183 (offset 63 lines).\nHunk #3 succeeded at 269 (offset 67 lines).\nHunk #4 succeeded at 301 (offset 67 lines).\nHunk #5 succeeded at 320 (offset 67 lines).\nHunk #6 succeeded at 329 (offset 67 lines).\nHunk #7 succeeded at 361 (offset 67 lines).\nHunk #8 succeeded at 380 (offset 67 lines).\nHunk #9 succeeded at 413 with fuzz 3 (offset 64 lines).\nHunk #10 succeeded at 1295 (offset 135 lines).\nHunk #11 succeeded at 1386 (offset 160 lines).\nHunk #12 succeeded at 4233 (offset 395 lines).\npatching file fs/notify/fdinfo.c\npatching file fs/proc/fd.c\npatching file fs/proc_namespace.c\npatching file fs/susfs.c\npatching file include/linux/susfs_def.h"
+  - patch: 19
+    subject: "[PATCH 19/36] fs: susfs: Refine SUS_KSTAT !!! This commit requires"
+    message: "patching file fs/proc/task_mmu.c\nHunk #1 succeeded at 31 with fuzz 1.\nHunk #2 succeeded at 393 (offset 6 lines).\npatching file fs/stat.c\npatching file fs/susfs.c\npatching file include/linux/susfs.h"
+  - patch: 20
+    subject: "[PATCH 20/36] fs: susfs: More bug fixes and improvements for"
+    message: "patching file fs/namespace.c\nHunk #1 succeeded at 40 (offset 4 lines).\nHunk #2 succeeded at 185 (offset 63 lines).\nHunk #3 succeeded at 213 (offset 63 lines).\nHunk #4 succeeded at 232 (offset 63 lines).\nHunk #5 succeeded at 292 (offset 67 lines).\nHunk #6 succeeded at 335 (offset 67 lines).\nHunk #7 succeeded at 351 (offset 67 lines).\nHunk #8 succeeded at 1399 (offset 160 lines).\nHunk #9 succeeded at 1409 (offset 160 lines).\nHunk #10 succeeded at 1487 with fuzz 1 (offset 188 lines).\nHunk #11 succeeded at 4257 (offset 395 lines).\npatching file fs/notify/fdinfo.c\npatching file fs/proc/fd.c\npatching file fs/statfs.c\npatching file include/linux/susfs_def.h"
+  - patch: 21
+    subject: "[PATCH 21/36] fs: susfs: Fix for another potential race issue for"
+    message: "patching file fs/namespace.c\nHunk #1 succeeded at 4259 (offset 395 lines).\npatching file fs/proc/fd.c"
+  - patch: 22
+    subject: "[PATCH 22/36] fs: susfs: sync version v2.1.0 de-inlined * rework of"
+    message: "patching file fs/namei.c\nHunk #1 succeeded at 3886 (offset 49 lines).\nHunk #2 succeeded at 3899 (offset 49 lines).\nHunk #3 succeeded at 5078 (offset 70 lines).\nHunk #4 succeeded at 5096 (offset 70 lines).\nHunk #5 succeeded at 5123 (offset 70 lines).\npatching file fs/open.c\nHunk #2 succeeded at 1084 with fuzz 3 (offset -15 lines).\npatching file fs/proc/base.c\nHunk #1 succeeded at 102 (offset 1 line).\nHunk #2 succeeded at 1662 (offset -181 lines).\nHunk #3 succeeded at 1675 (offset -181 lines).\npatching file fs/proc/fd.c\npatching file fs/proc/task_mmu.c\nHunk #1 succeeded at 21 with fuzz 3.\nHunk #2 succeeded at 33 with fuzz 2.\nHunk #3 succeeded at 376 (offset 6 lines).\nHunk #4 succeeded at 411 (offset 6 lines).\nHunk #5 succeeded at 429 (offset 6 lines).\npatching file fs/statfs.c\npatching file fs/susfs.c\npatching file include/linux/susfs.h\npatching file include/linux/susfs_def.h"
+  - patch: 31
+    subject: "[PATCH 31/36] fs: susfs: Re-use mnt_id_ida and mnt_group_ida - Re-use"
+    message: "patching file fs/namespace.c\nHunk #1 succeeded at 43 (offset 4 lines).\nHunk #2 succeeded at 183 (offset 63 lines).\nHunk #3 succeeded at 204 (offset 63 lines).\nHunk #4 succeeded at 223 (offset 63 lines).\nHunk #5 succeeded at 335 (offset 67 lines).\nHunk #6 succeeded at 1473 (offset 188 lines)."
+  - patch: 35
+    subject: "[PATCH 35/36] kernel: SUS_PATH: fix errno leaks for sub paths"
+    message: "patching file fs/namei.c\nHunk #1 succeeded at 2310 (offset 30 lines)."
+rejected_hooks:
+  - patch: 6
+    subject: "[PATCH 06/36] [BACKPORT] fs: implement susfs v2.0.0"
+    file: "fs/exec.c"
+    patch_output: |
+      patching file fs/Makefile
+      Hunk #1 succeeded at 14 with fuzz 2 (offset -10 lines).
+      patching file fs/devpts/inode.c
+      Hunk #3 succeeded at 617 with fuzz 3.
+      patching file fs/exec.c
+      Hunk #1 succeeded at 62 with fuzz 3.
+      Hunk #2 succeeded at 1756 with fuzz 3.
+      Hunk #3 succeeded at 1858 with fuzz 2 (offset 78 lines).
+      Hunk #4 FAILED at 1949.
+      Hunk #5 FAILED at 1961.
+      Hunk #6 FAILED at 1991.
+      3 out of 6 hunks FAILED -- saving rejects to file fs/exec.c.rej
+      patching file fs/namei.c
+      Hunk #1 succeeded at 39 with fuzz 2.
+      Hunk #2 succeeded at 53 (offset 4 lines).
+      Hunk #3 succeeded at 544 (offset 4 lines).
+      Hunk #4 succeeded at 573 (offset 4 lines).
+      Hunk #5 succeeded at 1710 (offset 30 lines).
+      Hunk #6 succeeded at 1775 (offset 30 lines).
+      Hunk #7 succeeded at 1787 (offset 30 lines).
+      Hunk #8 succeeded at 1859 (offset 30 lines).
+      Hunk #9 succeeded at 1915 (offset 30 lines).
+      Hunk #10 succeeded at 1974 (offset 30 lines).
+      Hunk #11 succeeded at 2108 (offset 30 lines).
+      Hunk #12 succeeded at 2384 (offset 30 lines).
+      Hunk #13 succeeded at 2423 (offset 30 lines).
+      Hunk #14 succeeded at 2606 (offset 30 lines).
+      Hunk #15 succeeded at 3498 (offset 50 lines).
+      Hunk #16 succeeded at 3672 (offset 50 lines).
+      Hunk #17 succeeded at 3993 (offset 49 lines).
+      Hunk #18 succeeded at 4013 (offset 49 lines).
+      Hunk #19 succeeded at 4372 with fuzz 3 (offset 45 lines).
+      Hunk #20 succeeded at 4503 with fuzz 3 (offset 40 lines).
+      patching file fs/namespace.c
+      Hunk #1 succeeded at 31 with fuzz 3 (offset 4 lines).
+      Hunk #2 succeeded at 185 (offset 63 lines).
+      Hunk #3 succeeded at 207 (offset 63 lines).
+      Hunk #4 succeeded at 235 (offset 63 lines).
+      Hunk #5 succeeded at 300 with fuzz 1 (offset 67 lines).
+      Hunk #6 succeeded at 428 with fuzz 3 (offset 64 lines).
+      Hunk #7 succeeded at 1314 (offset 135 lines).
+      Hunk #8 succeeded at 1367 with fuzz 2 (offset 151 lines).
+      Hunk #9 succeeded at 1405 with fuzz 1 (offset 160 lines).
+      Hunk #10 succeeded at 1520 with fuzz 2 (offset 194 lines).
+      Hunk #11 succeeded at 2291 (offset 206 lines).
+      Hunk #12 succeeded at 2335 (offset 218 lines).
+      Hunk #13 succeeded at 2830 (offset 250 lines).
+      Hunk #14 succeeded at 3526 with fuzz 3 (offset 250 lines).
+      Hunk #15 succeeded at 3643 with fuzz 1 (offset 328 lines).
+      Hunk #16 succeeded at 4251 (offset 395 lines).
+      patching file fs/notify/fdinfo.c
+      patching file fs/open.c
+      Hunk #2 FAILED at 367.
+      Hunk #3 FAILED at 387.
+      2 out of 3 hunks FAILED -- saving rejects to file fs/open.c.rej
+      patching file fs/proc/base.c
+      Hunk #1 succeeded at 102 (offset 1 line).
+      Hunk #2 succeeded at 832 (offset 43 lines).
+      Hunk #3 succeeded at 851 (offset 43 lines).
+      Hunk #4 succeeded at 2234 (offset -181 lines).
+      patching file fs/proc/cmdline.c
+      Hunk #1 succeeded at 12 with fuzz 3 (offset 8 lines).
+      patching file fs/proc/fd.c
+      patching file fs/proc/task_mmu.c
+      Hunk #1 succeeded at 21 with fuzz 3.
+      Hunk #2 succeeded at 376 (offset 6 lines).
+      Hunk #3 succeeded at 916 with fuzz 3 (offset 6 lines).
+      Hunk #4 FAILED at 949.
+      Hunk #5 FAILED at 979.
+      Hunk #6 succeeded at 1635 (offset 7 lines).
+      Hunk #7 succeeded at 1696 (offset 7 lines).
+      2 out of 7 hunks FAILED -- saving rejects to file fs/proc/task_mmu.c.rej
+      patching file fs/proc_namespace.c
+      patching file fs/readdir.c
+      patching file fs/stat.c
+      Hunk #4 succeeded at 201 with fuzz 2 (offset 3 lines).
+      Hunk #5 FAILED at 393.
+      Hunk #6 FAILED at 406.
+      Hunk #7 FAILED at 553.
+      3 out of 7 hunks FAILED -- saving rejects to file fs/stat.c.rej
+      patching file fs/statfs.c
+      patching file fs/susfs.c
+      patching file include/linux/mount.h
+      Hunk #1 succeeded at 72 with fuzz 1 (offset 3 lines).
+      patching file include/linux/sched.h
+      Hunk #1 succeeded at 1335 (offset -106 lines).
+      patching file include/linux/susfs.h
+      patching file include/linux/susfs_def.h
+      patching file kernel/kallsyms.c
+      Hunk #1 succeeded at 669 (offset 42 lines).
+      Hunk #2 succeeded at 694 (offset 42 lines).
+      patching file kernel/reboot.c
+      Hunk #1 FAILED at 303.
+      1 out of 1 hunk FAILED -- saving rejects to file kernel/reboot.c.rej
+      patching file kernel/sys.c
+      Hunk #1 succeeded at 1196 with fuzz 3 (offset -8 lines).
+      patching file security/selinux/avc.c
+      Hunk #1 succeeded at 50 (offset 6 lines).
+      Hunk #2 succeeded at 199 (offset 6 lines).
+      Hunk #3 succeeded at 216 (offset 6 lines).
+    rejected_diff: |
+      --- fs/exec.c
+      +++ fs/exec.c
+      @@ -1949,7 +1976,7 @@ static int do_execveat_common(int fd, struct filename *filename,
+       	return retval;
+       }
+       
+      -#ifdef CONFIG_KSU
+      +#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+       __attribute__((hot))
+       extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr,
+       				void *argv, void *envp, int *flags);
+      @@ -1961,7 +1988,7 @@ int do_execve(struct filename *filename,
+       {
+       	struct user_arg_ptr argv = { .ptr.native = __argv };
+       	struct user_arg_ptr envp = { .ptr.native = __envp };
+      -#ifdef CONFIG_KSU
+      +#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+       	ksu_handle_execveat((int *)AT_FDCWD, &filename, &argv, &envp, 0);
+       #endif
+       	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
+      @@ -1991,7 +2018,7 @@ static int compat_do_execve(struct filename *filename,
+       		.is_compat = true,
+       		.ptr.compat = __envp,
+       	};
+      -#ifdef CONFIG_KSU // 32-bit ksud and 32-on-64 support
+      +#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS) // 32-bit ksud and 32-on-64 support
+       	ksu_handle_execveat((int *)AT_FDCWD, &filename, &argv, &envp, 0);
+       #endif
+       	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
+      
+  - patch: 6
+    subject: "[PATCH 06/36] [BACKPORT] fs: implement susfs v2.0.0"
+    file: "fs/open.c"
+    patch_output: |
+      patching file fs/Makefile
+      Hunk #1 succeeded at 14 with fuzz 2 (offset -10 lines).
+      patching file fs/devpts/inode.c
+      Hunk #3 succeeded at 617 with fuzz 3.
+      patching file fs/exec.c
+      Hunk #1 succeeded at 62 with fuzz 3.
+      Hunk #2 succeeded at 1756 with fuzz 3.
+      Hunk #3 succeeded at 1858 with fuzz 2 (offset 78 lines).
+      Hunk #4 FAILED at 1949.
+      Hunk #5 FAILED at 1961.
+      Hunk #6 FAILED at 1991.
+      3 out of 6 hunks FAILED -- saving rejects to file fs/exec.c.rej
+      patching file fs/namei.c
+      Hunk #1 succeeded at 39 with fuzz 2.
+      Hunk #2 succeeded at 53 (offset 4 lines).
+      Hunk #3 succeeded at 544 (offset 4 lines).
+      Hunk #4 succeeded at 573 (offset 4 lines).
+      Hunk #5 succeeded at 1710 (offset 30 lines).
+      Hunk #6 succeeded at 1775 (offset 30 lines).
+      Hunk #7 succeeded at 1787 (offset 30 lines).
+      Hunk #8 succeeded at 1859 (offset 30 lines).
+      Hunk #9 succeeded at 1915 (offset 30 lines).
+      Hunk #10 succeeded at 1974 (offset 30 lines).
+      Hunk #11 succeeded at 2108 (offset 30 lines).
+      Hunk #12 succeeded at 2384 (offset 30 lines).
+      Hunk #13 succeeded at 2423 (offset 30 lines).
+      Hunk #14 succeeded at 2606 (offset 30 lines).
+      Hunk #15 succeeded at 3498 (offset 50 lines).
+      Hunk #16 succeeded at 3672 (offset 50 lines).
+      Hunk #17 succeeded at 3993 (offset 49 lines).
+      Hunk #18 succeeded at 4013 (offset 49 lines).
+      Hunk #19 succeeded at 4372 with fuzz 3 (offset 45 lines).
+      Hunk #20 succeeded at 4503 with fuzz 3 (offset 40 lines).
+      patching file fs/namespace.c
+      Hunk #1 succeeded at 31 with fuzz 3 (offset 4 lines).
+      Hunk #2 succeeded at 185 (offset 63 lines).
+      Hunk #3 succeeded at 207 (offset 63 lines).
+      Hunk #4 succeeded at 235 (offset 63 lines).
+      Hunk #5 succeeded at 300 with fuzz 1 (offset 67 lines).
+      Hunk #6 succeeded at 428 with fuzz 3 (offset 64 lines).
+      Hunk #7 succeeded at 1314 (offset 135 lines).
+      Hunk #8 succeeded at 1367 with fuzz 2 (offset 151 lines).
+      Hunk #9 succeeded at 1405 with fuzz 1 (offset 160 lines).
+      Hunk #10 succeeded at 1520 with fuzz 2 (offset 194 lines).
+      Hunk #11 succeeded at 2291 (offset 206 lines).
+      Hunk #12 succeeded at 2335 (offset 218 lines).
+      Hunk #13 succeeded at 2830 (offset 250 lines).
+      Hunk #14 succeeded at 3526 with fuzz 3 (offset 250 lines).
+      Hunk #15 succeeded at 3643 with fuzz 1 (offset 328 lines).
+      Hunk #16 succeeded at 4251 (offset 395 lines).
+      patching file fs/notify/fdinfo.c
+      patching file fs/open.c
+      Hunk #2 FAILED at 367.
+      Hunk #3 FAILED at 387.
+      2 out of 3 hunks FAILED -- saving rejects to file fs/open.c.rej
+      patching file fs/proc/base.c
+      Hunk #1 succeeded at 102 (offset 1 line).
+      Hunk #2 succeeded at 832 (offset 43 lines).
+      Hunk #3 succeeded at 851 (offset 43 lines).
+      Hunk #4 succeeded at 2234 (offset -181 lines).
+      patching file fs/proc/cmdline.c
+      Hunk #1 succeeded at 12 with fuzz 3 (offset 8 lines).
+      patching file fs/proc/fd.c
+      patching file fs/proc/task_mmu.c
+      Hunk #1 succeeded at 21 with fuzz 3.
+      Hunk #2 succeeded at 376 (offset 6 lines).
+      Hunk #3 succeeded at 916 with fuzz 3 (offset 6 lines).
+      Hunk #4 FAILED at 949.
+      Hunk #5 FAILED at 979.
+      Hunk #6 succeeded at 1635 (offset 7 lines).
+      Hunk #7 succeeded at 1696 (offset 7 lines).
+      2 out of 7 hunks FAILED -- saving rejects to file fs/proc/task_mmu.c.rej
+      patching file fs/proc_namespace.c
+      patching file fs/readdir.c
+      patching file fs/stat.c
+      Hunk #4 succeeded at 201 with fuzz 2 (offset 3 lines).
+      Hunk #5 FAILED at 393.
+      Hunk #6 FAILED at 406.
+      Hunk #7 FAILED at 553.
+      3 out of 7 hunks FAILED -- saving rejects to file fs/stat.c.rej
+      patching file fs/statfs.c
+      patching file fs/susfs.c
+      patching file include/linux/mount.h
+      Hunk #1 succeeded at 72 with fuzz 1 (offset 3 lines).
+      patching file include/linux/sched.h
+      Hunk #1 succeeded at 1335 (offset -106 lines).
+      patching file include/linux/susfs.h
+      patching file include/linux/susfs_def.h
+      patching file kernel/kallsyms.c
+      Hunk #1 succeeded at 669 (offset 42 lines).
+      Hunk #2 succeeded at 694 (offset 42 lines).
+      patching file kernel/reboot.c
+      Hunk #1 FAILED at 303.
+      1 out of 1 hunk FAILED -- saving rejects to file kernel/reboot.c.rej
+      patching file kernel/sys.c
+      Hunk #1 succeeded at 1196 with fuzz 3 (offset -8 lines).
+      patching file security/selinux/avc.c
+      Hunk #1 succeeded at 50 (offset 6 lines).
+      Hunk #2 succeeded at 199 (offset 6 lines).
+      Hunk #3 succeeded at 216 (offset 6 lines).
+    rejected_diff: |
+      --- fs/open.c
+      +++ fs/open.c
+      @@ -367,11 +370,16 @@ SYSCALL_DEFINE4(fallocate, int, fd, int, mode, loff_t, offset, loff_t, len)
+       	return error;
+       }
+       
+      -#ifdef CONFIG_KSU
+      +#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+       __attribute__((hot)) 
+       extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user,
+       				int *mode, int *flags);
+       #endif
+      +#ifdef CONFIG_KSU_SUSFS
+      +extern bool __ksu_is_allow_uid_for_current(uid_t uid);
+      +extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
+      +			int *flags);
+      +#endif
+       
+       /*
+        * access() needs to use the real uid/gid, not the effective uid/gid.
+      @@ -387,8 +395,19 @@ SYSCALL_DEFINE3(faccessat, int, dfd, const char __user *, filename, int, mode)
+       	struct vfsmount *mnt;
+       	int res;
+       	unsigned int lookup_flags = LOOKUP_FOLLOW;
+      -#ifdef CONFIG_KSU
+      +#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+       	ksu_handle_faccessat(&dfd, &filename, &mode, NULL);
+      +#endif
+      +#ifdef CONFIG_KSU_SUSFS
+      +	if (likely(susfs_is_current_proc_umounted())) {
+      +		goto orig_flow;
+      +	}
+      +
+      +	if (unlikely(__ksu_is_allow_uid_for_current(current_uid().val))) {
+      +		ksu_handle_faccessat(&dfd, &filename, &mode, NULL);
+      +	}
+      +
+      +orig_flow:
+       #endif
+       	if (mode & ~S_IRWXO)	/* where's F_OK, X_OK, W_OK, R_OK? */
+       		return -EINVAL;
+      
+  - patch: 6
+    subject: "[PATCH 06/36] [BACKPORT] fs: implement susfs v2.0.0"
+    file: "fs/proc/task_mmu.c"
+    patch_output: |
+      patching file fs/Makefile
+      Hunk #1 succeeded at 14 with fuzz 2 (offset -10 lines).
+      patching file fs/devpts/inode.c
+      Hunk #3 succeeded at 617 with fuzz 3.
+      patching file fs/exec.c
+      Hunk #1 succeeded at 62 with fuzz 3.
+      Hunk #2 succeeded at 1756 with fuzz 3.
+      Hunk #3 succeeded at 1858 with fuzz 2 (offset 78 lines).
+      Hunk #4 FAILED at 1949.
+      Hunk #5 FAILED at 1961.
+      Hunk #6 FAILED at 1991.
+      3 out of 6 hunks FAILED -- saving rejects to file fs/exec.c.rej
+      patching file fs/namei.c
+      Hunk #1 succeeded at 39 with fuzz 2.
+      Hunk #2 succeeded at 53 (offset 4 lines).
+      Hunk #3 succeeded at 544 (offset 4 lines).
+      Hunk #4 succeeded at 573 (offset 4 lines).
+      Hunk #5 succeeded at 1710 (offset 30 lines).
+      Hunk #6 succeeded at 1775 (offset 30 lines).
+      Hunk #7 succeeded at 1787 (offset 30 lines).
+      Hunk #8 succeeded at 1859 (offset 30 lines).
+      Hunk #9 succeeded at 1915 (offset 30 lines).
+      Hunk #10 succeeded at 1974 (offset 30 lines).
+      Hunk #11 succeeded at 2108 (offset 30 lines).
+      Hunk #12 succeeded at 2384 (offset 30 lines).
+      Hunk #13 succeeded at 2423 (offset 30 lines).
+      Hunk #14 succeeded at 2606 (offset 30 lines).
+      Hunk #15 succeeded at 3498 (offset 50 lines).
+      Hunk #16 succeeded at 3672 (offset 50 lines).
+      Hunk #17 succeeded at 3993 (offset 49 lines).
+      Hunk #18 succeeded at 4013 (offset 49 lines).
+      Hunk #19 succeeded at 4372 with fuzz 3 (offset 45 lines).
+      Hunk #20 succeeded at 4503 with fuzz 3 (offset 40 lines).
+      patching file fs/namespace.c
+      Hunk #1 succeeded at 31 with fuzz 3 (offset 4 lines).
+      Hunk #2 succeeded at 185 (offset 63 lines).
+      Hunk #3 succeeded at 207 (offset 63 lines).
+      Hunk #4 succeeded at 235 (offset 63 lines).
+      Hunk #5 succeeded at 300 with fuzz 1 (offset 67 lines).
+      Hunk #6 succeeded at 428 with fuzz 3 (offset 64 lines).
+      Hunk #7 succeeded at 1314 (offset 135 lines).
+      Hunk #8 succeeded at 1367 with fuzz 2 (offset 151 lines).
+      Hunk #9 succeeded at 1405 with fuzz 1 (offset 160 lines).
+      Hunk #10 succeeded at 1520 with fuzz 2 (offset 194 lines).
+      Hunk #11 succeeded at 2291 (offset 206 lines).
+      Hunk #12 succeeded at 2335 (offset 218 lines).
+      Hunk #13 succeeded at 2830 (offset 250 lines).
+      Hunk #14 succeeded at 3526 with fuzz 3 (offset 250 lines).
+      Hunk #15 succeeded at 3643 with fuzz 1 (offset 328 lines).
+      Hunk #16 succeeded at 4251 (offset 395 lines).
+      patching file fs/notify/fdinfo.c
+      patching file fs/open.c
+      Hunk #2 FAILED at 367.
+      Hunk #3 FAILED at 387.
+      2 out of 3 hunks FAILED -- saving rejects to file fs/open.c.rej
+      patching file fs/proc/base.c
+      Hunk #1 succeeded at 102 (offset 1 line).
+      Hunk #2 succeeded at 832 (offset 43 lines).
+      Hunk #3 succeeded at 851 (offset 43 lines).
+      Hunk #4 succeeded at 2234 (offset -181 lines).
+      patching file fs/proc/cmdline.c
+      Hunk #1 succeeded at 12 with fuzz 3 (offset 8 lines).
+      patching file fs/proc/fd.c
+      patching file fs/proc/task_mmu.c
+      Hunk #1 succeeded at 21 with fuzz 3.
+      Hunk #2 succeeded at 376 (offset 6 lines).
+      Hunk #3 succeeded at 916 with fuzz 3 (offset 6 lines).
+      Hunk #4 FAILED at 949.
+      Hunk #5 FAILED at 979.
+      Hunk #6 succeeded at 1635 (offset 7 lines).
+      Hunk #7 succeeded at 1696 (offset 7 lines).
+      2 out of 7 hunks FAILED -- saving rejects to file fs/proc/task_mmu.c.rej
+      patching file fs/proc_namespace.c
+      patching file fs/readdir.c
+      patching file fs/stat.c
+      Hunk #4 succeeded at 201 with fuzz 2 (offset 3 lines).
+      Hunk #5 FAILED at 393.
+      Hunk #6 FAILED at 406.
+      Hunk #7 FAILED at 553.
+      3 out of 7 hunks FAILED -- saving rejects to file fs/stat.c.rej
+      patching file fs/statfs.c
+      patching file fs/susfs.c
+      patching file include/linux/mount.h
+      Hunk #1 succeeded at 72 with fuzz 1 (offset 3 lines).
+      patching file include/linux/sched.h
+      Hunk #1 succeeded at 1335 (offset -106 lines).
+      patching file include/linux/susfs.h
+      patching file include/linux/susfs_def.h
+      patching file kernel/kallsyms.c
+      Hunk #1 succeeded at 669 (offset 42 lines).
+      Hunk #2 succeeded at 694 (offset 42 lines).
+      patching file kernel/reboot.c
+      Hunk #1 FAILED at 303.
+      1 out of 1 hunk FAILED -- saving rejects to file kernel/reboot.c.rej
+      patching file kernel/sys.c
+      Hunk #1 succeeded at 1196 with fuzz 3 (offset -8 lines).
+      patching file security/selinux/avc.c
+      Hunk #1 succeeded at 50 (offset 6 lines).
+      Hunk #2 succeeded at 199 (offset 6 lines).
+      Hunk #3 succeeded at 216 (offset 6 lines).
+    rejected_diff: |
+      --- fs/proc/task_mmu.c
+      +++ fs/proc/task_mmu.c
+      @@ -949,8 +1002,11 @@ static int show_smap(struct seq_file *m, void *v)
+       		seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
+       	show_smap_vma_flags(m, vma);
+       
+      +#ifdef CONFIG_KSU_SUSFS_SUS_MAP
+      +bypass_orig_flow:
+      +#endif
+       	m_cache_vma(m, vma);
+      -
+      +	
+       	return 0;
+       }
+       
+      @@ -979,7 +1035,19 @@ static int show_smaps_rollup(struct seq_file *m, void *v)
+       	hold_task_mempolicy(priv);
+       
+       	for (vma = priv->mm->mmap; vma; vma = vma->vm_next) {
+      +#ifdef CONFIG_KSU_SUSFS_SUS_MAP
+      +		if (vma->vm_file &&
+      +			unlikely(file_inode(vma->vm_file)->i_mapping->flags & BIT_SUS_MAPS) &&
+      +			susfs_is_current_proc_umounted())
+      +		{
+      +			memset(&mss, 0, sizeof(mss));
+      +			goto bypass_orig_flow;
+      +		}
+      +#endif
+       		smap_gather_stats(vma, &mss);
+      +#ifdef CONFIG_KSU_SUSFS_SUS_MAP
+      +bypass_orig_flow:
+      +#endif
+       		last_vma_end = vma->vm_end;
+       	}
+       
+      
+  - patch: 6
+    subject: "[PATCH 06/36] [BACKPORT] fs: implement susfs v2.0.0"
+    file: "fs/stat.c"
+    patch_output: |
+      patching file fs/Makefile
+      Hunk #1 succeeded at 14 with fuzz 2 (offset -10 lines).
+      patching file fs/devpts/inode.c
+      Hunk #3 succeeded at 617 with fuzz 3.
+      patching file fs/exec.c
+      Hunk #1 succeeded at 62 with fuzz 3.
+      Hunk #2 succeeded at 1756 with fuzz 3.
+      Hunk #3 succeeded at 1858 with fuzz 2 (offset 78 lines).
+      Hunk #4 FAILED at 1949.
+      Hunk #5 FAILED at 1961.
+      Hunk #6 FAILED at 1991.
+      3 out of 6 hunks FAILED -- saving rejects to file fs/exec.c.rej
+      patching file fs/namei.c
+      Hunk #1 succeeded at 39 with fuzz 2.
+      Hunk #2 succeeded at 53 (offset 4 lines).
+      Hunk #3 succeeded at 544 (offset 4 lines).
+      Hunk #4 succeeded at 573 (offset 4 lines).
+      Hunk #5 succeeded at 1710 (offset 30 lines).
+      Hunk #6 succeeded at 1775 (offset 30 lines).
+      Hunk #7 succeeded at 1787 (offset 30 lines).
+      Hunk #8 succeeded at 1859 (offset 30 lines).
+      Hunk #9 succeeded at 1915 (offset 30 lines).
+      Hunk #10 succeeded at 1974 (offset 30 lines).
+      Hunk #11 succeeded at 2108 (offset 30 lines).
+      Hunk #12 succeeded at 2384 (offset 30 lines).
+      Hunk #13 succeeded at 2423 (offset 30 lines).
+      Hunk #14 succeeded at 2606 (offset 30 lines).
+      Hunk #15 succeeded at 3498 (offset 50 lines).
+      Hunk #16 succeeded at 3672 (offset 50 lines).
+      Hunk #17 succeeded at 3993 (offset 49 lines).
+      Hunk #18 succeeded at 4013 (offset 49 lines).
+      Hunk #19 succeeded at 4372 with fuzz 3 (offset 45 lines).
+      Hunk #20 succeeded at 4503 with fuzz 3 (offset 40 lines).
+      patching file fs/namespace.c
+      Hunk #1 succeeded at 31 with fuzz 3 (offset 4 lines).
+      Hunk #2 succeeded at 185 (offset 63 lines).
+      Hunk #3 succeeded at 207 (offset 63 lines).
+      Hunk #4 succeeded at 235 (offset 63 lines).
+      Hunk #5 succeeded at 300 with fuzz 1 (offset 67 lines).
+      Hunk #6 succeeded at 428 with fuzz 3 (offset 64 lines).
+      Hunk #7 succeeded at 1314 (offset 135 lines).
+      Hunk #8 succeeded at 1367 with fuzz 2 (offset 151 lines).
+      Hunk #9 succeeded at 1405 with fuzz 1 (offset 160 lines).
+      Hunk #10 succeeded at 1520 with fuzz 2 (offset 194 lines).
+      Hunk #11 succeeded at 2291 (offset 206 lines).
+      Hunk #12 succeeded at 2335 (offset 218 lines).
+      Hunk #13 succeeded at 2830 (offset 250 lines).
+      Hunk #14 succeeded at 3526 with fuzz 3 (offset 250 lines).
+      Hunk #15 succeeded at 3643 with fuzz 1 (offset 328 lines).
+      Hunk #16 succeeded at 4251 (offset 395 lines).
+      patching file fs/notify/fdinfo.c
+      patching file fs/open.c
+      Hunk #2 FAILED at 367.
+      Hunk #3 FAILED at 387.
+      2 out of 3 hunks FAILED -- saving rejects to file fs/open.c.rej
+      patching file fs/proc/base.c
+      Hunk #1 succeeded at 102 (offset 1 line).
+      Hunk #2 succeeded at 832 (offset 43 lines).
+      Hunk #3 succeeded at 851 (offset 43 lines).
+      Hunk #4 succeeded at 2234 (offset -181 lines).
+      patching file fs/proc/cmdline.c
+      Hunk #1 succeeded at 12 with fuzz 3 (offset 8 lines).
+      patching file fs/proc/fd.c
+      patching file fs/proc/task_mmu.c
+      Hunk #1 succeeded at 21 with fuzz 3.
+      Hunk #2 succeeded at 376 (offset 6 lines).
+      Hunk #3 succeeded at 916 with fuzz 3 (offset 6 lines).
+      Hunk #4 FAILED at 949.
+      Hunk #5 FAILED at 979.
+      Hunk #6 succeeded at 1635 (offset 7 lines).
+      Hunk #7 succeeded at 1696 (offset 7 lines).
+      2 out of 7 hunks FAILED -- saving rejects to file fs/proc/task_mmu.c.rej
+      patching file fs/proc_namespace.c
+      patching file fs/readdir.c
+      patching file fs/stat.c
+      Hunk #4 succeeded at 201 with fuzz 2 (offset 3 lines).
+      Hunk #5 FAILED at 393.
+      Hunk #6 FAILED at 406.
+      Hunk #7 FAILED at 553.
+      3 out of 7 hunks FAILED -- saving rejects to file fs/stat.c.rej
+      patching file fs/statfs.c
+      patching file fs/susfs.c
+      patching file include/linux/mount.h
+      Hunk #1 succeeded at 72 with fuzz 1 (offset 3 lines).
+      patching file include/linux/sched.h
+      Hunk #1 succeeded at 1335 (offset -106 lines).
+      patching file include/linux/susfs.h
+      patching file include/linux/susfs_def.h
+      patching file kernel/kallsyms.c
+      Hunk #1 succeeded at 669 (offset 42 lines).
+      Hunk #2 succeeded at 694 (offset 42 lines).
+      patching file kernel/reboot.c
+      Hunk #1 FAILED at 303.
+      1 out of 1 hunk FAILED -- saving rejects to file kernel/reboot.c.rej
+      patching file kernel/sys.c
+      Hunk #1 succeeded at 1196 with fuzz 3 (offset -8 lines).
+      patching file security/selinux/avc.c
+      Hunk #1 succeeded at 50 (offset 6 lines).
+      Hunk #2 succeeded at 199 (offset 6 lines).
+      Hunk #3 succeeded at 216 (offset 6 lines).
+    rejected_diff: |
+      --- fs/stat.c
+      +++ fs/stat.c
+      @@ -393,7 +433,7 @@ SYSCALL_DEFINE2(newlstat, const char __user *, filename,
+       	return cp_new_stat(&stat, statbuf);
+       }
+       
+      -#ifdef CONFIG_KSU
+      +#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+       __attribute__((hot)) 
+       extern int ksu_handle_stat(int *dfd, const char __user **filename_user,
+       				int *flags);
+      @@ -406,7 +446,7 @@ SYSCALL_DEFINE4(newfstatat, int, dfd, const char __user *, filename,
+       	struct kstat stat;
+       	int error;
+       
+      -#ifdef CONFIG_KSU
+      +#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+       	ksu_handle_stat(&dfd, &filename, &flag);
+       #endif
+       	error = vfs_fstatat(dfd, filename, &stat, flag);
+      @@ -553,7 +593,7 @@ SYSCALL_DEFINE4(fstatat64, int, dfd, const char __user *, filename,
+       	struct kstat stat;
+       	int error;
+       
+      -#ifdef CONFIG_KSU // 32-bit su
+      +#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS) // 32-bit su
+       	ksu_handle_stat(&dfd, &filename, &flag); 
+       #endif
+       	error = vfs_fstatat(dfd, filename, &stat, flag);
+      
+  - patch: 6
+    subject: "[PATCH 06/36] [BACKPORT] fs: implement susfs v2.0.0"
+    file: "kernel/reboot.c"
+    patch_output: |
+      patching file fs/Makefile
+      Hunk #1 succeeded at 14 with fuzz 2 (offset -10 lines).
+      patching file fs/devpts/inode.c
+      Hunk #3 succeeded at 617 with fuzz 3.
+      patching file fs/exec.c
+      Hunk #1 succeeded at 62 with fuzz 3.
+      Hunk #2 succeeded at 1756 with fuzz 3.
+      Hunk #3 succeeded at 1858 with fuzz 2 (offset 78 lines).
+      Hunk #4 FAILED at 1949.
+      Hunk #5 FAILED at 1961.
+      Hunk #6 FAILED at 1991.
+      3 out of 6 hunks FAILED -- saving rejects to file fs/exec.c.rej
+      patching file fs/namei.c
+      Hunk #1 succeeded at 39 with fuzz 2.
+      Hunk #2 succeeded at 53 (offset 4 lines).
+      Hunk #3 succeeded at 544 (offset 4 lines).
+      Hunk #4 succeeded at 573 (offset 4 lines).
+      Hunk #5 succeeded at 1710 (offset 30 lines).
+      Hunk #6 succeeded at 1775 (offset 30 lines).
+      Hunk #7 succeeded at 1787 (offset 30 lines).
+      Hunk #8 succeeded at 1859 (offset 30 lines).
+      Hunk #9 succeeded at 1915 (offset 30 lines).
+      Hunk #10 succeeded at 1974 (offset 30 lines).
+      Hunk #11 succeeded at 2108 (offset 30 lines).
+      Hunk #12 succeeded at 2384 (offset 30 lines).
+      Hunk #13 succeeded at 2423 (offset 30 lines).
+      Hunk #14 succeeded at 2606 (offset 30 lines).
+      Hunk #15 succeeded at 3498 (offset 50 lines).
+      Hunk #16 succeeded at 3672 (offset 50 lines).
+      Hunk #17 succeeded at 3993 (offset 49 lines).
+      Hunk #18 succeeded at 4013 (offset 49 lines).
+      Hunk #19 succeeded at 4372 with fuzz 3 (offset 45 lines).
+      Hunk #20 succeeded at 4503 with fuzz 3 (offset 40 lines).
+      patching file fs/namespace.c
+      Hunk #1 succeeded at 31 with fuzz 3 (offset 4 lines).
+      Hunk #2 succeeded at 185 (offset 63 lines).
+      Hunk #3 succeeded at 207 (offset 63 lines).
+      Hunk #4 succeeded at 235 (offset 63 lines).
+      Hunk #5 succeeded at 300 with fuzz 1 (offset 67 lines).
+      Hunk #6 succeeded at 428 with fuzz 3 (offset 64 lines).
+      Hunk #7 succeeded at 1314 (offset 135 lines).
+      Hunk #8 succeeded at 1367 with fuzz 2 (offset 151 lines).
+      Hunk #9 succeeded at 1405 with fuzz 1 (offset 160 lines).
+      Hunk #10 succeeded at 1520 with fuzz 2 (offset 194 lines).
+      Hunk #11 succeeded at 2291 (offset 206 lines).
+      Hunk #12 succeeded at 2335 (offset 218 lines).
+      Hunk #13 succeeded at 2830 (offset 250 lines).
+      Hunk #14 succeeded at 3526 with fuzz 3 (offset 250 lines).
+      Hunk #15 succeeded at 3643 with fuzz 1 (offset 328 lines).
+      Hunk #16 succeeded at 4251 (offset 395 lines).
+      patching file fs/notify/fdinfo.c
+      patching file fs/open.c
+      Hunk #2 FAILED at 367.
+      Hunk #3 FAILED at 387.
+      2 out of 3 hunks FAILED -- saving rejects to file fs/open.c.rej
+      patching file fs/proc/base.c
+      Hunk #1 succeeded at 102 (offset 1 line).
+      Hunk #2 succeeded at 832 (offset 43 lines).
+      Hunk #3 succeeded at 851 (offset 43 lines).
+      Hunk #4 succeeded at 2234 (offset -181 lines).
+      patching file fs/proc/cmdline.c
+      Hunk #1 succeeded at 12 with fuzz 3 (offset 8 lines).
+      patching file fs/proc/fd.c
+      patching file fs/proc/task_mmu.c
+      Hunk #1 succeeded at 21 with fuzz 3.
+      Hunk #2 succeeded at 376 (offset 6 lines).
+      Hunk #3 succeeded at 916 with fuzz 3 (offset 6 lines).
+      Hunk #4 FAILED at 949.
+      Hunk #5 FAILED at 979.
+      Hunk #6 succeeded at 1635 (offset 7 lines).
+      Hunk #7 succeeded at 1696 (offset 7 lines).
+      2 out of 7 hunks FAILED -- saving rejects to file fs/proc/task_mmu.c.rej
+      patching file fs/proc_namespace.c
+      patching file fs/readdir.c
+      patching file fs/stat.c
+      Hunk #4 succeeded at 201 with fuzz 2 (offset 3 lines).
+      Hunk #5 FAILED at 393.
+      Hunk #6 FAILED at 406.
+      Hunk #7 FAILED at 553.
+      3 out of 7 hunks FAILED -- saving rejects to file fs/stat.c.rej
+      patching file fs/statfs.c
+      patching file fs/susfs.c
+      patching file include/linux/mount.h
+      Hunk #1 succeeded at 72 with fuzz 1 (offset 3 lines).
+      patching file include/linux/sched.h
+      Hunk #1 succeeded at 1335 (offset -106 lines).
+      patching file include/linux/susfs.h
+      patching file include/linux/susfs_def.h
+      patching file kernel/kallsyms.c
+      Hunk #1 succeeded at 669 (offset 42 lines).
+      Hunk #2 succeeded at 694 (offset 42 lines).
+      patching file kernel/reboot.c
+      Hunk #1 FAILED at 303.
+      1 out of 1 hunk FAILED -- saving rejects to file kernel/reboot.c.rej
+      patching file kernel/sys.c
+      Hunk #1 succeeded at 1196 with fuzz 3 (offset -8 lines).
+      patching file security/selinux/avc.c
+      Hunk #1 succeeded at 50 (offset 6 lines).
+      Hunk #2 succeeded at 199 (offset 6 lines).
+      Hunk #3 succeeded at 216 (offset 6 lines).
+    rejected_diff: |
+      --- kernel/reboot.c
+      +++ kernel/reboot.c
+      @@ -303,9 +303,17 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+       	char buffer[256];
+       	int ret = 0;
+       
+      -#ifdef CONFIG_KSU 
+      +#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+       	ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
+      -#endif	
+      +#endif
+      +#ifdef CONFIG_KSU_SUSFS
+      +	ret = ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
+      +	if (ret) {
+      +		goto orig_flow;
+      +	}
+      +	return ret;
+      +orig_flow:
+      +#endif
+       	/* We only trust the superuser with rebooting the system. */
+       	if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))
+       		return -EPERM;
+      
+  - patch: 8
+    subject: "[PATCH 08/36] fs: kernel: susfs: remove inline hooks"
+    file: "drivers/tty/pty.c"
+    patch_output: |
+      patching file drivers/tty/pty.c
+      Reversed (or previously applied) patch detected!  Skipping patch.
+      1 out of 1 hunk ignored -- saving rejects to file drivers/tty/pty.c.rej
+      patching file fs/devpts/inode.c
+      Hunk #3 succeeded at 610 with fuzz 3.
+      patching file fs/exec.c
+      Hunk #1 succeeded at 62 with fuzz 3.
+      Hunk #2 succeeded at 1753 with fuzz 3.
+      Hunk #3 succeeded at 1844 with fuzz 3 (offset 78 lines).
+      Hunk #4 FAILED at 1922.
+      Hunk #5 FAILED at 1934.
+      Hunk #6 FAILED at 1964.
+      3 out of 6 hunks FAILED -- saving rejects to file fs/exec.c.rej
+      patching file fs/open.c
+      Hunk #2 FAILED at 364.
+      Hunk #3 FAILED at 389.
+      2 out of 3 hunks FAILED -- saving rejects to file fs/open.c.rej
+      patching file fs/stat.c
+      Hunk #2 succeeded at 192 with fuzz 2 (offset 3 lines).
+      Hunk #3 FAILED at 372.
+      Hunk #4 FAILED at 385.
+      Hunk #5 FAILED at 532.
+      3 out of 5 hunks FAILED -- saving rejects to file fs/stat.c.rej
+      patching file kernel/reboot.c
+      Hunk #1 FAILED at 303.
+      1 out of 1 hunk FAILED -- saving rejects to file kernel/reboot.c.rej
+    rejected_diff: |
+      --- drivers/tty/pty.c
+      +++ drivers/tty/pty.c
+      @@ -711,18 +711,11 @@ static struct tty_struct *ptm_unix98_lookup(struct tty_driver *driver,
+        *	This provides our locking for the tty pointer.
+        */
+       
+      -#ifdef CONFIG_KSU
+      -extern int ksu_handle_devpts(struct inode*);
+      -#endif
+      -
+       static struct tty_struct *pts_unix98_lookup(struct tty_driver *driver,
+       		struct file *file, int idx)
+       {
+       	struct tty_struct *tty;
+      -
+      -#ifdef CONFIG_KSU
+      -	ksu_handle_devpts((struct inode *)file->f_path.dentry->d_inode);
+      -#endif
+      +	
+       	mutex_lock(&devpts_mutex);
+       	tty = devpts_get_priv(file->f_path.dentry);
+       	mutex_unlock(&devpts_mutex);
+      
+  - patch: 8
+    subject: "[PATCH 08/36] fs: kernel: susfs: remove inline hooks"
+    file: "fs/exec.c"
+    patch_output: |
+      patching file drivers/tty/pty.c
+      Reversed (or previously applied) patch detected!  Skipping patch.
+      1 out of 1 hunk ignored -- saving rejects to file drivers/tty/pty.c.rej
+      patching file fs/devpts/inode.c
+      Hunk #3 succeeded at 610 with fuzz 3.
+      patching file fs/exec.c
+      Hunk #1 succeeded at 62 with fuzz 3.
+      Hunk #2 succeeded at 1753 with fuzz 3.
+      Hunk #3 succeeded at 1844 with fuzz 3 (offset 78 lines).
+      Hunk #4 FAILED at 1922.
+      Hunk #5 FAILED at 1934.
+      Hunk #6 FAILED at 1964.
+      3 out of 6 hunks FAILED -- saving rejects to file fs/exec.c.rej
+      patching file fs/open.c
+      Hunk #2 FAILED at 364.
+      Hunk #3 FAILED at 389.
+      2 out of 3 hunks FAILED -- saving rejects to file fs/open.c.rej
+      patching file fs/stat.c
+      Hunk #2 succeeded at 192 with fuzz 2 (offset 3 lines).
+      Hunk #3 FAILED at 372.
+      Hunk #4 FAILED at 385.
+      Hunk #5 FAILED at 532.
+      3 out of 5 hunks FAILED -- saving rejects to file fs/stat.c.rej
+      patching file kernel/reboot.c
+      Hunk #1 FAILED at 303.
+      1 out of 1 hunk FAILED -- saving rejects to file kernel/reboot.c.rej
+    rejected_diff: |
+      --- fs/exec.c
+      +++ fs/exec.c
+      @@ -1922,7 +1895,7 @@ static int do_execveat_common(int fd, struct filename *filename,
+       	return retval;
+       }
+       
+      -#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+      +#if defined(CONFIG_KSU)
+       __attribute__((hot))
+       extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr,
+       				void *argv, void *envp, int *flags);
+      @@ -1934,7 +1907,7 @@ int do_execve(struct filename *filename,
+       {
+       	struct user_arg_ptr argv = { .ptr.native = __argv };
+       	struct user_arg_ptr envp = { .ptr.native = __envp };
+      -#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+      +#if defined(CONFIG_KSU)
+       	ksu_handle_execveat((int *)AT_FDCWD, &filename, &argv, &envp, 0);
+       #endif
+       	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
+      @@ -1964,7 +1937,7 @@ static int compat_do_execve(struct filename *filename,
+       		.is_compat = true,
+       		.ptr.compat = __envp,
+       	};
+      -#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS) // 32-bit ksud and 32-on-64 support
+      +#if defined(CONFIG_KSU)
+       	ksu_handle_execveat((int *)AT_FDCWD, &filename, &argv, &envp, 0);
+       #endif
+       	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
+      
+  - patch: 8
+    subject: "[PATCH 08/36] fs: kernel: susfs: remove inline hooks"
+    file: "fs/open.c"
+    patch_output: |
+      patching file drivers/tty/pty.c
+      Reversed (or previously applied) patch detected!  Skipping patch.
+      1 out of 1 hunk ignored -- saving rejects to file drivers/tty/pty.c.rej
+      patching file fs/devpts/inode.c
+      Hunk #3 succeeded at 610 with fuzz 3.
+      patching file fs/exec.c
+      Hunk #1 succeeded at 62 with fuzz 3.
+      Hunk #2 succeeded at 1753 with fuzz 3.
+      Hunk #3 succeeded at 1844 with fuzz 3 (offset 78 lines).
+      Hunk #4 FAILED at 1922.
+      Hunk #5 FAILED at 1934.
+      Hunk #6 FAILED at 1964.
+      3 out of 6 hunks FAILED -- saving rejects to file fs/exec.c.rej
+      patching file fs/open.c
+      Hunk #2 FAILED at 364.
+      Hunk #3 FAILED at 389.
+      2 out of 3 hunks FAILED -- saving rejects to file fs/open.c.rej
+      patching file fs/stat.c
+      Hunk #2 succeeded at 192 with fuzz 2 (offset 3 lines).
+      Hunk #3 FAILED at 372.
+      Hunk #4 FAILED at 385.
+      Hunk #5 FAILED at 532.
+      3 out of 5 hunks FAILED -- saving rejects to file fs/stat.c.rej
+      patching file kernel/reboot.c
+      Hunk #1 FAILED at 303.
+      1 out of 1 hunk FAILED -- saving rejects to file kernel/reboot.c.rej
+    rejected_diff: |
+      --- fs/open.c
+      +++ fs/open.c
+      @@ -364,16 +361,11 @@ SYSCALL_DEFINE4(fallocate, int, fd, int, mode, loff_t, offset, loff_t, len)
+       	return error;
+       }
+       
+      -#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+      +#ifdef CONFIG_KSU
+       __attribute__((hot)) 
+       extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user,
+       				int *mode, int *flags);
+       #endif
+      -#ifdef CONFIG_KSU_SUSFS
+      -extern bool __ksu_is_allow_uid_for_current(uid_t uid);
+      -extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
+      -			int *flags);
+      -#endif
+       
+       /*
+        * access() needs to use the real uid/gid, not the effective uid/gid.
+      @@ -389,19 +381,8 @@ SYSCALL_DEFINE3(faccessat, int, dfd, const char __user *, filename, int, mode)
+       	struct vfsmount *mnt;
+       	int res;
+       	unsigned int lookup_flags = LOOKUP_FOLLOW;
+      -#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+      +#ifdef CONFIG_KSU
+       	ksu_handle_faccessat(&dfd, &filename, &mode, NULL);
+      -#endif
+      -#ifdef CONFIG_KSU_SUSFS
+      -	if (likely(susfs_is_current_proc_umounted())) {
+      -		goto orig_flow;
+      -	}
+      -
+      -	if (unlikely(__ksu_is_allow_uid_for_current(current_uid().val))) {
+      -		ksu_handle_faccessat(&dfd, &filename, &mode, NULL);
+      -	}
+      -
+      -orig_flow:
+       #endif
+       	if (mode & ~S_IRWXO)	/* where's F_OK, X_OK, W_OK, R_OK? */
+       		return -EINVAL;
+      
+  - patch: 8
+    subject: "[PATCH 08/36] fs: kernel: susfs: remove inline hooks"
+    file: "fs/stat.c"
+    patch_output: |
+      patching file drivers/tty/pty.c
+      Reversed (or previously applied) patch detected!  Skipping patch.
+      1 out of 1 hunk ignored -- saving rejects to file drivers/tty/pty.c.rej
+      patching file fs/devpts/inode.c
+      Hunk #3 succeeded at 610 with fuzz 3.
+      patching file fs/exec.c
+      Hunk #1 succeeded at 62 with fuzz 3.
+      Hunk #2 succeeded at 1753 with fuzz 3.
+      Hunk #3 succeeded at 1844 with fuzz 3 (offset 78 lines).
+      Hunk #4 FAILED at 1922.
+      Hunk #5 FAILED at 1934.
+      Hunk #6 FAILED at 1964.
+      3 out of 6 hunks FAILED -- saving rejects to file fs/exec.c.rej
+      patching file fs/open.c
+      Hunk #2 FAILED at 364.
+      Hunk #3 FAILED at 389.
+      2 out of 3 hunks FAILED -- saving rejects to file fs/open.c.rej
+      patching file fs/stat.c
+      Hunk #2 succeeded at 192 with fuzz 2 (offset 3 lines).
+      Hunk #3 FAILED at 372.
+      Hunk #4 FAILED at 385.
+      Hunk #5 FAILED at 532.
+      3 out of 5 hunks FAILED -- saving rejects to file fs/stat.c.rej
+      patching file kernel/reboot.c
+      Hunk #1 FAILED at 303.
+      1 out of 1 hunk FAILED -- saving rejects to file kernel/reboot.c.rej
+    rejected_diff: |
+      --- fs/stat.c
+      +++ fs/stat.c
+      @@ -372,7 +351,7 @@ SYSCALL_DEFINE2(newlstat, const char __user *, filename,
+       	return cp_new_stat(&stat, statbuf);
+       }
+       
+      -#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+      +#if defined(CONFIG_KSU)
+       __attribute__((hot)) 
+       extern int ksu_handle_stat(int *dfd, const char __user **filename_user,
+       				int *flags);
+      @@ -385,7 +364,7 @@ SYSCALL_DEFINE4(newfstatat, int, dfd, const char __user *, filename,
+       	struct kstat stat;
+       	int error;
+       
+      -#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+      +#if defined(CONFIG_KSU)
+       	ksu_handle_stat(&dfd, &filename, &flag);
+       #endif
+       	error = vfs_fstatat(dfd, filename, &stat, flag);
+      @@ -532,7 +511,7 @@ SYSCALL_DEFINE4(fstatat64, int, dfd, const char __user *, filename,
+       	struct kstat stat;
+       	int error;
+       
+      -#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS) // 32-bit su
+      +#if defined(CONFIG_KSU)
+       	ksu_handle_stat(&dfd, &filename, &flag); 
+       #endif
+       	error = vfs_fstatat(dfd, filename, &stat, flag);
+      
+  - patch: 8
+    subject: "[PATCH 08/36] fs: kernel: susfs: remove inline hooks"
+    file: "kernel/reboot.c"
+    patch_output: |
+      patching file drivers/tty/pty.c
+      Reversed (or previously applied) patch detected!  Skipping patch.
+      1 out of 1 hunk ignored -- saving rejects to file drivers/tty/pty.c.rej
+      patching file fs/devpts/inode.c
+      Hunk #3 succeeded at 610 with fuzz 3.
+      patching file fs/exec.c
+      Hunk #1 succeeded at 62 with fuzz 3.
+      Hunk #2 succeeded at 1753 with fuzz 3.
+      Hunk #3 succeeded at 1844 with fuzz 3 (offset 78 lines).
+      Hunk #4 FAILED at 1922.
+      Hunk #5 FAILED at 1934.
+      Hunk #6 FAILED at 1964.
+      3 out of 6 hunks FAILED -- saving rejects to file fs/exec.c.rej
+      patching file fs/open.c
+      Hunk #2 FAILED at 364.
+      Hunk #3 FAILED at 389.
+      2 out of 3 hunks FAILED -- saving rejects to file fs/open.c.rej
+      patching file fs/stat.c
+      Hunk #2 succeeded at 192 with fuzz 2 (offset 3 lines).
+      Hunk #3 FAILED at 372.
+      Hunk #4 FAILED at 385.
+      Hunk #5 FAILED at 532.
+      3 out of 5 hunks FAILED -- saving rejects to file fs/stat.c.rej
+      patching file kernel/reboot.c
+      Hunk #1 FAILED at 303.
+      1 out of 1 hunk FAILED -- saving rejects to file kernel/reboot.c.rej
+    rejected_diff: |
+      --- kernel/reboot.c
+      +++ kernel/reboot.c
+      @@ -303,16 +303,8 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+       	char buffer[256];
+       	int ret = 0;
+       
+      -#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_SUSFS)
+      +#ifdef CONFIG_KSU
+       	ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
+      -#endif
+      -#ifdef CONFIG_KSU_SUSFS
+      -	ret = ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
+      -	if (ret) {
+      -		goto orig_flow;
+      -	}
+      -	return ret;
+      -orig_flow:
+       #endif
+       	/* We only trust the superuser with rebooting the system. */
+       	if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))
+      
+  - patch: 10
+    subject: "[PATCH 10/36] fs: susfs: change inode->i_mapping->flags to"
+    file: "fs/proc/task_mmu.c"
+    patch_output: |
+      patching file fs/namei.c
+      Hunk #1 succeeded at 4014 (offset 49 lines).
+      patching file fs/proc/base.c
+      Hunk #1 succeeded at 855 (offset 43 lines).
+      Hunk #2 succeeded at 2235 (offset -181 lines).
+      patching file fs/proc/task_mmu.c
+      Hunk #1 succeeded at 377 (offset 6 lines).
+      Hunk #2 succeeded at 395 (offset 6 lines).
+      Hunk #3 succeeded at 918 with fuzz 1 (offset 6 lines).
+      Hunk #4 FAILED at 984.
+      Hunk #5 succeeded at 1700 (offset -8 lines).
+      1 out of 5 hunks FAILED -- saving rejects to file fs/proc/task_mmu.c.rej
+      patching file fs/stat.c
+      patching file fs/susfs.c
+      patching file include/linux/susfs_def.h
+    rejected_diff: |
+      --- fs/proc/task_mmu.c
+      +++ fs/proc/task_mmu.c
+      @@ -984,7 +984,7 @@ static int show_smaps_rollup(struct seq_file *m, void *v)
+       	for (vma = priv->mm->mmap; vma; vma = vma->vm_next) {
+       #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+       		if (vma->vm_file &&
+      -			unlikely(file_inode(vma->vm_file)->i_mapping->flags & BIT_SUS_MAPS) &&
+      +			unlikely(file_inode(vma->vm_file)->i_state & BIT_SUS_MAPS) &&
+       			susfs_is_current_proc_umounted())
+       		{
+       			memset(&mss, 0, sizeof(mss));
+      
+  - patch: 17
+    subject: "[PATCH 17/36] fs: susfs: update sus_path and sus_path_loop to latest"
+    file: "fs/proc/task_mmu.c"
+    patch_output: |
+      patching file fs/namei.c
+      Hunk #1 succeeded at 54 (offset 4 lines).
+      Hunk #2 succeeded at 1675 (offset 30 lines).
+      Hunk #3 succeeded at 1714 (offset 30 lines).
+      Hunk #4 succeeded at 1751 (offset 30 lines).
+      Hunk #5 succeeded at 1762 (offset 30 lines).
+      Hunk #6 succeeded at 1816 (offset 30 lines).
+      Hunk #7 succeeded at 1857 (offset 30 lines).
+      Hunk #8 succeeded at 1866 (offset 30 lines).
+      Hunk #9 succeeded at 1879 (offset 30 lines).
+      Hunk #10 succeeded at 1900 (offset 30 lines).
+      Hunk #11 succeeded at 2349 (offset 30 lines).
+      Hunk #12 succeeded at 3416 (offset 50 lines).
+      Hunk #13 succeeded at 3888 (offset 49 lines).
+      patching file fs/proc/base.c
+      Hunk #1 succeeded at 2182 (offset -181 lines).
+      Hunk #2 succeeded at 2238 (offset -181 lines).
+      patching file fs/proc/task_mmu.c
+      Hunk #1 succeeded at 395 (offset 6 lines).
+      Hunk #2 succeeded at 920 with fuzz 1 (offset 6 lines).
+      Hunk #3 FAILED at 985.
+      Hunk #4 succeeded at 1699 (offset -8 lines).
+      1 out of 4 hunks FAILED -- saving rejects to file fs/proc/task_mmu.c.rej
+      patching file fs/readdir.c
+      patching file fs/stat.c
+      patching file fs/susfs.c
+      patching file include/linux/susfs.h
+      patching file include/linux/susfs_def.h
+    rejected_diff: |
+      --- fs/proc/task_mmu.c
+      +++ fs/proc/task_mmu.c
+      @@ -985,12 +987,14 @@ static int show_smaps_rollup(struct seq_file *m, void *v)
+       
+       	for (vma = priv->mm->mmap; vma; vma = vma->vm_next) {
+       #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+      -		if (vma->vm_file &&
+      -			unlikely(file_inode(vma->vm_file)->i_state & BIT_SUS_MAPS) &&
+      -			susfs_is_current_proc_umounted())
+      -		{
+      -			memset(&mss, 0, sizeof(mss));
+      -			goto bypass_orig_flow;
+      +		if (vma->vm_file) {
+      +			struct inode *inode = file_inode(vma->vm_file);
+      +			if (unlikely(test_bit(AS_FLAGS_SUS_MAP, &inode->i_state) &&
+      +				susfs_is_current_proc_umounted_app()))
+      +			{
+      +				memset(&mss, 0, sizeof(mss));
+      +				goto bypass_orig_flow;
+      +			}
+       		}
+       #endif
+       		smap_gather_stats(vma, &mss);
+      
+  - patch: 23
+    subject: "[PATCH 23/36] fs: susfs: changes and bug fixes for OPEN_REDIRECT,"
+    file: "fs/proc/task_mmu.c"
+    patch_output: |
+      patching file fs/namei.c
+      Hunk #1 succeeded at 5097 (offset 70 lines).
+      Hunk #2 succeeded at 5131 (offset 70 lines).
+      patching file fs/open.c
+      Hunk #1 succeeded at 1085 (offset -15 lines).
+      Hunk #2 succeeded at 1095 (offset -15 lines).
+      Hunk #3 succeeded at 1104 (offset -15 lines).
+      patching file fs/proc/base.c
+      Hunk #1 succeeded at 102 (offset 1 line).
+      Hunk #2 succeeded at 855 (offset 43 lines).
+      Hunk #3 succeeded at 1676 (offset -181 lines).
+      Hunk #4 succeeded at 2254 (offset -181 lines).
+      patching file fs/proc/fd.c
+      patching file fs/proc/task_mmu.c
+      Hunk #1 succeeded at 383 (offset 6 lines).
+      Hunk #2 succeeded at 392 (offset 6 lines).
+      Hunk #3 succeeded at 940 with fuzz 2 (offset 6 lines).
+      Hunk #4 FAILED at 1008.
+      Hunk #5 succeeded at 1720 (offset -10 lines).
+      1 out of 5 hunks FAILED -- saving rejects to file fs/proc/task_mmu.c.rej
+      patching file fs/statfs.c
+      patching file fs/susfs.c
+      patching file include/linux/susfs_def.h
+    rejected_diff: |
+      --- fs/proc/task_mmu.c
+      +++ fs/proc/task_mmu.c
+      @@ -1008,14 +1008,12 @@ static int show_smaps_rollup(struct seq_file *m, void *v)
+       #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+       		if (vma->vm_file) {
+       			struct inode *inode = file_inode(vma->vm_file);
+      -			if (unlikely(test_bit(AS_FLAGS_SUS_MAP, &inode->i_state) &&
+      -				susfs_is_current_proc_umounted_app()))
+      -			{
+      +			if (SUSFS_IS_INODE_SUS_MAP(inode)) {
+       				memset(&mss, 0, sizeof(mss));
+       				goto bypass_orig_flow;
+       			}
+       		}
+      -#endif
+      +#endif // #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+       		smap_gather_stats(vma, &mss);
+       #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+       bypass_orig_flow:
+      
+  - patch: 34
+    subject: "[PATCH 34/36] kernel: More code improvement and bug fixes for SUS_MAP"
+    file: "fs/proc/task_mmu.c"
+    patch_output: |
+      patching file fs/proc/base.c
+      Hunk #1 succeeded at 832 (offset 43 lines).
+      Hunk #2 succeeded at 848 (offset 43 lines).
+      Hunk #3 succeeded at 2180 (offset -181 lines).
+      Hunk #4 succeeded at 2233 (offset -181 lines).
+      patching file fs/proc/task_mmu.c
+      Hunk #1 succeeded at 392 (offset 6 lines).
+      Hunk #2 succeeded at 927 with fuzz 1 (offset 6 lines).
+      Hunk #3 FAILED at 946.
+      Hunk #4 FAILED at 980.
+      Hunk #5 succeeded at 1691 (offset -8 lines).
+      2 out of 5 hunks FAILED -- saving rejects to file fs/proc/task_mmu.c.rej
+      patching file mm/memory.c
+      Hunk #2 succeeded at 4577 (offset -518 lines).
+      Hunk #3 succeeded at 4588 (offset -518 lines).
+    rejected_diff: |
+      --- fs/proc/task_mmu.c
+      +++ fs/proc/task_mmu.c
+      @@ -946,9 +920,6 @@ static int show_smap(struct seq_file *m, void *v)
+       		seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
+       	show_smap_vma_flags(m, vma);
+       
+      -#ifdef CONFIG_KSU_SUSFS_SUS_MAP
+      -bypass_orig_flow:
+      -#endif
+       	m_cache_vma(m, vma);
+       	
+       	return 0;
+      @@ -980,13 +951,8 @@ static int show_smaps_rollup(struct seq_file *m, void *v)
+       
+       	for (vma = priv->mm->mmap; vma; vma = vma->vm_next) {
+       #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+      -		if (vma->vm_file) {
+      -			struct inode *inode = file_inode(vma->vm_file);
+      -			if (SUSFS_IS_INODE_SUS_MAP(inode)) {
+      -				memset(&mss, 0, sizeof(mss));
+      +		if (vma->vm_file && SUSFS_IS_INODE_SUS_MAP(file_inode(vma->vm_file)))
+       				goto bypass_orig_flow;
+      -			}
+      -		}
+       #endif // #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+       		smap_gather_stats(vma, &mss);
+       #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+      
