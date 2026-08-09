@@ -53,10 +53,10 @@ jobs:
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
           
-          # 1. إنشاء الإعداد الافتراضي (استبدل vendor_defconfig باسم defconfig الخاص بنواتك)
-          make ARCH=arm64 vendor_defconfig
+          # 1. تطبيق الإعداد الافتراضي للـ Exynos 9820
+          make ARCH=arm64 exynos9820_defconfig
 
-          # 2. دمج ksu.config في .config
+          # 2. دمج ksu.config المخصص
           if [ -f "ksu.config" ]; then
             echo "⚙️ Merging ksu.config into .config..."
             cat ksu.config >> .config
