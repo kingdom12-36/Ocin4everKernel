@@ -40,9 +40,13 @@
 
 #ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
 extern bool susfs_is_inode_open_redirect(struct inode *inode);
+#ifndef SUSFS_IS_INODE_OPEN_REDIRECT
 #define SUSFS_IS_INODE_OPEN_REDIRECT(inode) susfs_is_inode_open_redirect(inode)
+#endif
 #else
+#ifndef SUSFS_IS_INODE_OPEN_REDIRECT
 #define SUSFS_IS_INODE_OPEN_REDIRECT(inode) (false)
+#endif
 #endif
 
 /********/
@@ -221,6 +225,13 @@ struct st_susfs_version {
 /***********************/
 /* FORWARD DECLARATION */
 /***********************/
+
+/* Missing Namespace / Mount Declarations */
+struct mount;
+extern bool susfs_is_sdcard_android_data_decrypted;
+extern bool susfs_is_current_ksu_domain(void);
+extern struct mount *susfs_alloc_non_unshare_ksu_vfsmnt(const char *dev_name);
+
 /* sus_path */
 #ifdef CONFIG_KSU_SUSFS_SUS_PATH
 void susfs_add_sus_path(void __user **user_info);
