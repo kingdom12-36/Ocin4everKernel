@@ -15,8 +15,6 @@ jobs:
 
       - name: Recreate Correct Symlink
         run: |
-          # 1. حذف الملف التالف والاسم الخاطئ
-          rm -rf drivers/Kernelsu drivers/kernelsu
 
           # 2. إنشاء الرابط الرمزي الصحيح الذي يشير لـ KernelSU-Next
           ln -sf ../KernelSU-Next/kernel drivers/kernelsu
