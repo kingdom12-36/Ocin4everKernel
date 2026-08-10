@@ -876,6 +876,14 @@ static int show_smap(struct seq_file *m, void *v, int is_pid)
 	bool rollup_mode;
 	bool last_vma;
 
+#ifdef CONFIG_KSU_SUSFS_SUS_MAP
+	if (vma->vm_file && SUSFS_IS_INODE_SUS_MAP(file_inode(vma->vm_file))) {
+		if (priv->rollup)
+			return SEQ_SKIP;
+		return 0;
+	}
+#endif // #ifdef CONFIG_KSU_SUSFS_SUS_MAP
+
 	if (priv->rollup) {
 		rollup_mode = true;
 		mss = priv->rollup;
