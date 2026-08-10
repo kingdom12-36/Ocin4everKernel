@@ -8,7 +8,7 @@ jobs:
 
     steps:
       - name: Checkout Kernel Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
           fetch-depth: 1
@@ -32,7 +32,7 @@ jobs:
             fi
             echo "✅ Patch dry-run passed!"
           else
-            echo "⚠️ Notice: $PATCH_FILE not found, skipping dry-run check."
+            echo "INFO: $PATCH_FILE is not present; skipping optional dry-run check."
           fi
 
           echo "==========================================="
@@ -57,19 +57,21 @@ jobs:
           # تطبيق defconfig الخاص بالـ Exynos 9820
           make ARCH=arm64 exynos9820_defconfig
 
-          # دمج ksu.config المخصص
+          # Merge the KernelSU configuration as a fragment so existing symbols are replaced cleanly.
+          KSU_CONFIG=""
           if [ -f "ksu.config" ]; then
-            echo "⚙️ Merging ksu.config into .config..."
-            cat ksu.config >> .config
-            make ARCH=arm64 olddefconfig
-            echo "✅ ksu.config applied successfully!"
+            KSU_CONFIG="ksu.config"
           elif [ -f "arch/arm64/configs/ksu.config" ]; then
-            echo "⚙️ Merging arch/arm64/configs/ksu.config into .config..."
-            cat arch/arm64/configs/ksu.config >> .config
+            KSU_CONFIG="arch/arm64/configs/ksu.config"
+          fi
+
+          if [ -n "$KSU_CONFIG" ]; then
+            echo "Merging $KSU_CONFIG into .config..."
+            scripts/kconfig/merge_config.sh -m .config "$KSU_CONFIG"
             make ARCH=arm64 olddefconfig
-            echo "✅ ksu.config applied successfully!"
+            echo "KernelSU configuration applied successfully."
           else
-            echo "⚠️ Warning: ksu.config not found! Proceeding with base defconfig."
+            echo "INFO: No optional ksu.config found; continuing with the base defconfig."
           fi
 
       - name: Fast Partial Compilation Test
