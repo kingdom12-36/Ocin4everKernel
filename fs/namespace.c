@@ -3516,9 +3516,6 @@ static struct mnt_namespace *alloc_mnt_ns(struct user_namespace *user_ns)
 	struct ucounts *ucounts;
 	int ret;
 
-#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
-	copy_flags |= CL_COPY_MNT_NS;
-#endif
 	ucounts = inc_mnt_namespaces(user_ns);
 	if (!ucounts)
 		return ERR_PTR(-ENOSPC);
@@ -3577,6 +3574,9 @@ struct mnt_namespace *copy_mnt_ns(unsigned long flags, struct mnt_namespace *ns,
 	copy_flags = CL_COPY_UNBINDABLE | CL_EXPIRE;
 	if (user_ns != ns->user_ns)
 		copy_flags |= CL_SHARED_TO_SLAVE | CL_UNPRIVILEGED;
+#ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
+	copy_flags |= CL_COPY_MNT_NS;
+#endif
 #ifdef CONFIG_KDP_NS
 	new = copy_tree(old, old->mnt->mnt_root, copy_flags);
 #else
